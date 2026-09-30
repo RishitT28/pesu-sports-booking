@@ -5,12 +5,13 @@ import { CAMPUSES, COURTS, FRIENDS, SLOT_HOURS, SPORTS, formatHour, isSlotBooked
 import { useApp } from "@/lib/store";
 import { QrPass } from "@/components/QrPass";
 
-type Search = { sport?: string };
+type Search = { sport?: string | undefined };
 
 export const Route = createFileRoute("/courts")({
-  validateSearch: (s: Record<string, unknown>): Search => ({
-    sport: typeof s.sport === "string" ? s.sport : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): Search => {
+    const sport = s["sport"];
+    return typeof sport === "string" ? { sport } : {};
+  },
   head: () => ({
     meta: [
       { title: "PES Play — Book a Court" },
