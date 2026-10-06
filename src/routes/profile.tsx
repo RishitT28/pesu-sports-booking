@@ -1,15 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BadgeCheck, Clock, Pencil, Swords, Trophy } from "lucide-react";
-import { BADGES, SPORTS, USER } from "@/lib/data";
+import { SPORTS, USER } from "@/lib/data";
 import { useApp } from "@/lib/store";
+import { MyBookings } from "@/components/BookingDetails";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "PES Play — Profile" },
-      { name: "description", content: "Your PES Play profile: stats, badges, and favorite sports." },
+      { name: "description", content: "Your PES Play profile, bookings, and favorite sports." },
       { property: "og:title", content: "PES Play — Profile" },
-      { property: "og:description", content: "Your PES Play profile: stats, badges, and favorite sports." },
+      { property: "og:description", content: "Your PES Play profile, bookings, and favorite sports." },
     ],
   }),
   component: Profile,
@@ -40,13 +43,6 @@ function Profile() {
           <button className="shrink-0 rounded-full bg-secondary p-2 text-muted-foreground" aria-label="Edit profile">
             <Pencil className="h-4 w-4" />
           </button>
-        </div>
-        <div className="mt-4 flex items-center justify-between rounded-2xl bg-card/60 px-4 py-3">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">PR / Skill Rating</p>
-            <p className="text-gradient font-display text-2xl font-bold">{USER.pr} · {USER.skill}</p>
-          </div>
-          <Trophy className="h-8 w-8 text-volt" />
         </div>
       </section>
 
@@ -83,31 +79,7 @@ function Profile() {
         </div>
       </section>
 
-      {/* Badges */}
-      <section className="mt-6">
-        <h2 className="text-lg font-bold">Achievements</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
-          {BADGES.map((b) => (
-            <div
-              key={b.id}
-              className={`rounded-2xl border p-4 transition-all ${
-                b.earned
-                  ? "border-primary/30 bg-card"
-                  : "border-border bg-card opacity-45 grayscale"
-              }`}
-            >
-              <span className={`text-2xl ${b.earned ? "" : ""}`}>{b.icon}</span>
-              <p className="mt-2 text-sm font-semibold leading-tight">{b.name}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{b.desc}</p>
-              {b.earned && (
-                <span className="mt-2 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">
-                  Earned
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+      <MyBookings />
     </main>
   );
 }

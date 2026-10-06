@@ -102,9 +102,8 @@ export type Notification = {
 };
 
 export const INITIAL_NOTIFICATIONS: Notification[] = [
-  { id: "n1", title: "Booking confirmed", body: "Badminton Court 1 · Today 5–6 PM. Show your QR pass at the gate.", time: "2h ago", kind: "booking", read: false },
+  { id: "n1", title: "Booking confirmed", body: "Badminton Court 1 · RR Campus · Today, 5–6 PM. Booking confirmed.", time: "2h ago", kind: "booking", read: false },
   { id: "n2", title: "Match filling fast", body: "3v3 basketball needs 4 more players — starts 6:30 PM at RR Campus.", time: "3h ago", kind: "match", read: false },
-  { id: "n3", title: "New badge unlocked", body: "You earned “Court Regular” for a 7-day play streak. 🔥", time: "1d ago", kind: "system", read: true },
   { id: "n4", title: "Slot reminder", body: "Chess Lounge tomorrow 4 PM — don't forget your ID card.", time: "1d ago", kind: "booking", read: true },
   { id: "n5", title: "Invite from Karthik M.", body: "Box cricket, 6-a-side at EC Campus on Saturday morning.", time: "2d ago", kind: "match", read: true },
 ];
