@@ -105,8 +105,8 @@
 @utility gradient-card {
   background-image: linear-gradient(
     160deg,
-    color-mix(in oklab, var(--turf) 16%, var(--card)),
-    color-mix(in oklab, var(--sky-glow) 12%, var(--card))
+    color-mix(in oklab, #f8b500 28%, var(--card)),
+    color-mix(in oklab, var(--sky-glow) 14%, var(--card))
   );
 }
 
