@@ -7,22 +7,22 @@ import { useApp } from "@/lib/store";
 export const Route = createFileRoute("/matches")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "PES Play — Find Players" },
-      { name: "description", content: "Join open matches and find players at your skill level across PES campuses." },
+      { name: "description", content: "Join open matches and find players across PES campuses." },
       { property: "og:title", content: "PES Play — Find Players" },
-      { property: "og:description", content: "Join open matches and find players at your skill level across PES campuses." },
+      { property: "og:description", content: "Join open matches and find players across PES campuses." },
     ],
   }),
   component: Matches,
 });
 
-const SKILLS = ["All", "Beginner", "Intermediate", "Advanced"] as const;
 
 type ChatMsg = { from: string; text: string; mine: boolean };
 
 function Matches() {
   const { matches, joinMatch } = useApp();
-  const [skill, setSkill] = useState<(typeof SKILLS)[number]>("All");
   const [sport, setSport] = useState<string>("all");
   const [chatMatch, setChatMatch] = useState<Match | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -30,7 +30,7 @@ function Matches() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const filtered = matches.filter(
-    (m) => (skill === "All" || m.skill === skill) && (sport === "all" || m.sport === sport),
+    (m) => sport === "all" || m.sport === sport,
   );
 
   const openChat = (m: Match) => {
@@ -64,18 +64,6 @@ function Matches() {
 
       {/* Filters */}
       <div className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        {SKILLS.map((s) => (
-          <button
-            key={s}
-            onClick={() => setSkill(s)}
-            className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
-              skill === s ? "gradient-play text-primary-foreground" : "border border-border bg-card text-muted-foreground"
-            }`}
-          >
-            {s}
-          </button>
-        ))}
-        <span className="mx-1 w-px shrink-0 bg-border" />
         <button
           onClick={() => setSport("all")}
           className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
@@ -127,9 +115,6 @@ function Matches() {
                     {m.court} · {m.campus}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-accent/15 px-2.5 py-1 text-[10px] font-bold text-accent">
-                  {m.skill}
-                </span>
               </div>
 
               <div className="mt-3">

@@ -64,7 +64,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         {
           id: `n-${Date.now()}`,
           title: "Booking confirmed",
-          body: `${b.courtName} · ${b.dateLabel} ${b.hour % 12 === 0 ? 12 : b.hour % 12}:00 ${b.hour < 12 ? "AM" : "PM"}. Show your QR pass at the gate.`,
+          body: `${b.courtName} · ${b.dateLabel} ${b.hour % 12 === 0 ? 12 : b.hour % 12}:00 ${b.hour < 12 ? "AM" : "PM"}. ${b.campus} · 1 hour. Booking confirmed.`,
           time: "Just now",
           kind: "booking",
           read: false,

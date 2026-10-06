@@ -5,6 +5,8 @@ import { useApp } from "@/lib/store";
 export const Route = createFileRoute("/notifications")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "PES Play — Notifications" },
       { name: "description", content: "Booking confirmations, match invites and updates from PES Play." },
       { property: "og:title", content: "PES Play — Notifications" },

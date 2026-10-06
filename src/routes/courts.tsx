@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, IndianRupee, MapPin, Star, Users, X } from "lucide-react";
+import { Check, MapPin } from "lucide-react";
 import { useMemo, useState } from "react";
-import { CAMPUSES, COURTS, FRIENDS, SLOT_HOURS, SPORTS, formatHour, isSlotBooked, type Court } from "@/lib/data";
+import { CAMPUSES, COURTS, SLOT_HOURS, SPORTS, formatHour, isSlotBooked, type Court } from "@/lib/data";
 import { useApp } from "@/lib/store";
-import { QrPass } from "@/components/QrPass";
+import { BookingDetails, MyBookings } from "@/components/BookingDetails";
+import { Button } from "@/components/ui/button";
 
 type Search = { sport?: string | undefined };
 
@@ -14,6 +15,8 @@ export const Route = createFileRoute("/courts")({
   },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "PES Play — Book a Court" },
       { name: "description", content: "Browse and book badminton, squash, basketball, cricket and more at PES University." },
       { property: "og:title", content: "PES Play — Book a Court" },
@@ -28,12 +31,10 @@ const DAYS = ["Today", "Tomorrow", "Sat", "Sun"];
 function Courts() {
   const { sport } = Route.useSearch();
   const navigate = useNavigate({ from: "/courts" });
-  const { addBooking } = useApp();
+  const { addBooking, bookings } = useApp();
   const [campus, setCampus] = useState<string>("All");
   const [dayIdx, setDayIdx] = useState(0);
   const [selected, setSelected] = useState<{ court: Court; hour: number } | null>(null);
-  const [split, setSplit] = useState(false);
-  const [invited, setInvited] = useState<string[]>([]);
   const [confirmed, setConfirmed] = useState<string | null>(null);
 
   const filtered = useMemo(
@@ -51,16 +52,16 @@ function Courts() {
       courtName: selected.court.name,
       sport: selected.court.sport,
       campus: selected.court.campus,
-      dateLabel: DAYS[dayIdx],
+      dateLabel: DAYS[dayIdx] ?? "Today",
       hour: selected.hour,
-      price: split ? Math.round(selected.court.pricePerHour / (invited.length + 1)) : selected.court.pricePerHour,
-      splitWith: invited,
+      price: selected.court.pricePerHour,
+      splitWith: [],
     });
     setConfirmed(b.id);
     setSelected(null);
-    setInvited([]);
-    setSplit(false);
   };
+
+  const confirmedBooking = bookings.find((booking) => booking.id === confirmed);
 
   return (
     <main className="mx-auto max-w-md px-4 pb-28 pt-5 md:max-w-6xl md:px-6 md:pb-12">
@@ -69,16 +70,16 @@ function Courts() {
 
       {/* Sport filter */}
       <div className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        <button
+        <Button variant="ghost"
           onClick={() => navigate({ search: {} })}
           className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
             !sport ? "gradient-play text-primary-foreground" : "border border-border bg-card text-muted-foreground"
           }`}
         >
           All Sports
-        </button>
+        </Button>
         {SPORTS.map((s) => (
-          <button
+          <Button variant="ghost"
             key={s.id}
             onClick={() => navigate({ search: { sport: s.id } })}
             className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
@@ -86,14 +87,14 @@ function Courts() {
             }`}
           >
             <span>{s.icon}</span> {s.name}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Campus + day filters */}
       <div className="mt-3 flex flex-wrap gap-2">
         {["All", ...CAMPUSES].map((c) => (
-          <button
+          <Button variant="ghost"
             key={c}
             onClick={() => setCampus(c)}
             className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
@@ -101,11 +102,11 @@ function Courts() {
             }`}
           >
             {c}
-          </button>
+          </Button>
         ))}
         <span className="mx-1 w-px bg-border" />
         {DAYS.map((d, i) => (
-          <button
+          <Button variant="ghost"
             key={d}
             onClick={() => setDayIdx(i)}
             className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
@@ -113,7 +114,7 @@ function Courts() {
             }`}
           >
             {d}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -150,14 +151,7 @@ function Courts() {
                     </p>
                   </div>
                 </div>
-                <div className="shrink-0 text-right">
-                  <p className="flex items-center justify-end gap-1 text-xs font-semibold text-volt">
-                    <Star className="h-3 w-3 fill-current" /> {court.rating}
-                  </p>
-                  <p className="mt-0.5 flex items-center justify-end text-sm font-bold text-primary">
-                    <IndianRupee className="h-3.5 w-3.5" />{court.pricePerHour}/hr
-                  </p>
-                </div>
+
               </div>
 
               {/* Slot grid */}
@@ -166,7 +160,7 @@ function Courts() {
                   const booked = isSlotBooked(court.id, h, dayIdx);
                   const isSel = selected?.court.id === court.id && selected.hour === h;
                   return (
-                    <button
+                    <Button variant="ghost"
                       key={h}
                       disabled={booked}
                       onClick={() => setSelected(isSel ? null : { court, hour: h })}
@@ -179,7 +173,7 @@ function Courts() {
                       }`}
                     >
                       {h % 12 === 0 ? 12 : h % 12}{h < 12 ? "a" : "p"}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -191,55 +185,13 @@ function Courts() {
                     {DAYS[dayIdx]} · {formatHour(selected.hour)} – {formatHour(selected.hour + 1)}
                   </p>
 
-                  <label className="mt-3 flex cursor-pointer items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
-                    <span className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-accent" /> Split payment / invite friends
-                    </span>
-                    <button
-                      role="switch"
-                      aria-checked={split}
-                      onClick={(e) => { e.preventDefault(); setSplit(!split); }}
-                      className={`relative h-6 w-11 rounded-full transition-colors ${split ? "bg-primary" : "bg-muted"}`}
-                    >
-                      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-foreground transition-all ${split ? "left-[22px]" : "left-0.5"}`} />
-                    </button>
-                  </label>
-
-                  {split && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {FRIENDS.map((f) => {
-                        const on = invited.includes(f);
-                        return (
-                          <button
-                            key={f}
-                            onClick={() => setInvited((p) => (on ? p.filter((x) => x !== f) : [...p, f]))}
-                            className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                              on ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground"
-                            }`}
-                          >
-                            {on && <Check className="h-3 w-3" />} {f}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      Total:{" "}
-                      <span className="font-bold text-foreground">
-                        ₹{split ? Math.round(court.pricePerHour / (invited.length + 1)) : court.pricePerHour}
-                      </span>
-                      {split && invited.length > 0 && (
-                        <span className="text-xs"> per person ({invited.length + 1} players)</span>
-                      )}
-                    </p>
-                    <button
+                  <div className="mt-4 flex justify-end">
+                    <Button variant="ghost"
                       onClick={confirmBooking}
                       className="gradient-play glow-primary rounded-xl px-5 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
                     >
                       Confirm Booking
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -248,27 +200,23 @@ function Courts() {
         })}
       </div>
 
+      <MyBookings />
+
       {/* Confirmation modal */}
-      {confirmed && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-sm md:items-center">
-          <div className="w-full max-w-sm rounded-t-3xl border border-border bg-popover p-6 text-center md:rounded-3xl">
+      {confirmedBooking && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-background/80 backdrop-blur-sm md:items-center">
+          <div role="dialog" aria-modal="true" aria-labelledby="booking-confirmed-title" className="w-full max-w-sm rounded-t-3xl border border-border bg-popover p-6 text-center md:rounded-3xl">
             <div className="gradient-play mx-auto grid h-14 w-14 place-items-center rounded-full">
               <Check className="h-7 w-7 text-primary-foreground" />
             </div>
-            <h3 className="mt-4 font-display text-xl font-bold">Booking Confirmed!</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Your QR entry pass is ready.</p>
-            <div className="mt-5 flex justify-center">
-              <QrPass seed={confirmed} />
-            </div>
-            <p className="mt-3 rounded-full bg-secondary px-3 py-1 font-mono text-xs text-primary inline-block">
-              {confirmed.toUpperCase()}
-            </p>
-            <button
+            <h3 id="booking-confirmed-title" className="mt-4 font-display text-xl font-bold">Booking Confirmed!</h3>
+            <div className="mt-5"><BookingDetails booking={confirmedBooking} /></div>
+            <Button variant="ghost"
               onClick={() => setConfirmed(null)}
               className="gradient-play mt-5 w-full rounded-xl py-3 text-sm font-bold text-primary-foreground"
             >
               Done
-            </button>
+            </Button>
           </div>
         </div>
       )}
