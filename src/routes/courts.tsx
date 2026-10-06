@@ -168,7 +168,7 @@ function Courts() {
                         isSel
                           ? "bg-accent text-accent-foreground ring-2 ring-accent/50"
                           : booked
-                            ? "cursor-not-allowed bg-destructive/20 text-destructive line-through"
+                            ? "cursor-not-allowed bg-destructive/20 text-danger-soft line-through"
                             : "bg-primary/10 text-primary hover:bg-primary/25"
                       }`}
                     >

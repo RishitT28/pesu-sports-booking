@@ -35,6 +35,7 @@
   --color-turf: var(--turf);
   --color-volt: var(--volt);
   --color-sky-glow: var(--sky-glow);
+  --color-danger-soft: var(--danger-soft);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -58,8 +59,8 @@
   --secondary-foreground: oklch(0.93 0.03 250);
   --muted: oklch(0.33 0.05 252 / 65%);
   --muted-foreground: oklch(0.76 0.04 250);
-  --accent: oklch(0.48 0.11 250 / 60%);
-  --accent-foreground: oklch(0.96 0.02 250);
+  --accent: oklch(0.62 0.15 250 / 85%);
+  --accent-foreground: oklch(0.98 0.01 250);
   --destructive: oklch(0.7 0.17 25);
   --destructive-foreground: oklch(0.98 0.01 250);
   --border: oklch(0.88 0.05 250 / 20%);
@@ -68,6 +69,7 @@
   --turf: oklch(0.78 0.19 155);
   --volt: oklch(0.88 0.17 100);
   --sky-glow: oklch(0.74 0.13 240);
+  --danger-soft: oklch(0.8 0.1 15);
   --chart-1: oklch(0.78 0.19 155);
   --chart-2: oklch(0.74 0.14 240);
   --chart-3: oklch(0.88 0.17 100);
