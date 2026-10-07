@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CourtsRouteImport } from './routes/courts'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const CourtsRoute = CourtsRouteImport.update({
   id: '/courts',
   path: '/courts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MatchesRoute = MatchesRouteImport.update({
@@ -44,6 +50,7 @@ const ProfileRoute = ProfileRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/courts': typeof CourtsRoute
+  '/login': typeof LoginRoute
   '/matches': typeof MatchesRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/courts': typeof CourtsRoute
+  '/login': typeof LoginRoute
   '/matches': typeof MatchesRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -59,21 +67,31 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/courts': typeof CourtsRoute
+  '/login': typeof LoginRoute
   '/matches': typeof MatchesRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/courts' | '/matches' | '/notifications' | '/profile'
+  fullPaths:
+    '/' | '/courts' | '/login' | '/matches' | '/notifications' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/courts' | '/matches' | '/notifications' | '/profile'
-  id: '__root__' | '/' | '/courts' | '/matches' | '/notifications' | '/profile'
+  to: '/' | '/courts' | '/login' | '/matches' | '/notifications' | '/profile'
+  id:
+    | '__root__'
+    | '/'
+    | '/courts'
+    | '/login'
+    | '/matches'
+    | '/notifications'
+    | '/profile'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CourtsRoute: typeof CourtsRoute
+  LoginRoute: typeof LoginRoute
   MatchesRoute: typeof MatchesRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
@@ -93,6 +111,13 @@ declare module '@tanstack/react-router' {
       path: '/courts'
       fullPath: '/courts'
       preLoaderRoute: typeof CourtsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/matches': {
@@ -122,6 +147,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CourtsRoute: CourtsRoute,
+  LoginRoute: LoginRoute,
   MatchesRoute: MatchesRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
