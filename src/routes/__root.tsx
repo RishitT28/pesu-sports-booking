@@ -121,13 +121,15 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isLogin = pathname === "/login";
 
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <TopNav />
+        {!isLogin && <TopNav />}
         <Outlet />
-        <BottomNav />
+        {!isLogin && <BottomNav />}
       </AppProvider>
     </QueryClientProvider>
   );
