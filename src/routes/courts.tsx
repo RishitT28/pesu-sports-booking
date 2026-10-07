@@ -172,7 +172,7 @@ function Courts() {
                             : "bg-primary/10 text-primary hover:bg-primary/25"
                       }`}
                     >
-                      {h % 12 === 0 ? 12 : h % 12}{h < 12 ? "a" : "p"}
+                      {h % 12 === 0 ? 12 : h % 12} {h < 12 ? "AM" : "PM"}
                     </Button>
                   );
                 })}
