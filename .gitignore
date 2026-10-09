@@ -32,5 +32,10 @@ dist-ssr
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
-*.sw?
+# SQLite databases
+data/*.db
+data/*.db-*
+data/*.sqlite
+locked_storage/*.db
+locked_storage/*.db-*
+locked_storage/*.sqlite
