@@ -118,7 +118,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="bg-[#f8f8fa] text-[#111827] antialiased selection:bg-[#e35925] selection:text-white">
+      <body className="bg-[#f5f4ef] text-[#242831] antialiased selection:bg-[#c45524] selection:text-white font-serif">
         {children}
         <Scripts />
       </body>
@@ -136,7 +136,7 @@ function MainLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f8fa] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f5f4ef] flex flex-col font-serif">
       <TopNav />
       <div className="flex flex-1 relative">
         <PESUSidebar />
