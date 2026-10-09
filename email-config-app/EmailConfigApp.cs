@@ -514,15 +514,21 @@ namespace PesuEmailConfig
                 using (WebClient client = new WebClient())
                 {
                     string res = client.DownloadString(API_URL + "/logs");
-                    var list = (object[])jss.Deserialize<object[]>(res);
+                    var list = jss.Deserialize<System.Collections.ArrayList>(res);
                     lstLogs.Items.Clear();
-                    foreach (Dictionary<string, object> entry in list)
+                    if (list != null)
                     {
-                        string time = Convert.ToString(entry["timestamp"]);
-                        string type = Convert.ToString(entry["type"]);
-                        string to = Convert.ToString(entry["recipient"]);
-                        string details = Convert.ToString(entry["details"]);
-                        lstLogs.Items.Add(string.Format("[{0}] [{1}] {2} -> {3}", time.Substring(11, 8), type, to, details));
+                        foreach (object obj in list)
+                        {
+                            var entry = obj as Dictionary<string, object>;
+                            if (entry == null) continue;
+                            string time = Convert.ToString(entry["timestamp"]);
+                            string type = Convert.ToString(entry["type"]);
+                            string to = Convert.ToString(entry["recipient"]);
+                            string details = Convert.ToString(entry["details"]);
+                            string timeShort = time.Length >= 19 ? time.Substring(11, 8) : time;
+                            lstLogs.Items.Add(string.Format("[{0}] [{1}] {2} -> {3}", timeShort, type, to, details));
+                        }
                     }
                     if (lstLogs.Items.Count == 0)
                     {

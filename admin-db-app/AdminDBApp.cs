@@ -477,52 +477,67 @@ namespace PesuSportsAdmin
 
                     if (data.ContainsKey("table1"))
                     {
-                        var t1 = (object[])data["table1"];
+                        var t1 = data["table1"] as System.Collections.IEnumerable;
                         gridBookings.Rows.Clear();
-                        foreach (Dictionary<string, object> r in t1)
+                        if (t1 != null)
                         {
-                            gridBookings.Rows.Add(
-                                r.ContainsKey("id") ? r["id"] : "",
-                                r.ContainsKey("person") ? r["person"] : "",
-                                r.ContainsKey("booking_place") ? r["booking_place"] : "",
-                                r.ContainsKey("booking_time") ? r["booking_time"] : "",
-                                r.ContainsKey("booking_duration") ? r["booking_duration"] : "",
-                                r.ContainsKey("status") ? r["status"] : "",
-                                r.ContainsKey("student_srn") ? r["student_srn"] : ""
-                            );
+                            foreach (object item in t1)
+                            {
+                                var r = item as Dictionary<string, object>;
+                                if (r == null) continue;
+                                gridBookings.Rows.Add(
+                                    r.ContainsKey("id") ? r["id"] : "",
+                                    r.ContainsKey("person") ? r["person"] : "",
+                                    r.ContainsKey("booking_place") ? r["booking_place"] : "",
+                                    r.ContainsKey("booking_time") ? r["booking_time"] : "",
+                                    r.ContainsKey("booking_duration") ? r["booking_duration"] : "",
+                                    r.ContainsKey("status") ? r["status"] : "",
+                                    r.ContainsKey("student_srn") ? r["student_srn"] : ""
+                                );
+                            }
                         }
                     }
 
                     if (data.ContainsKey("table2"))
                     {
-                        var t2 = (object[])data["table2"];
+                        var t2 = data["table2"] as System.Collections.IEnumerable;
                         gridCounts.Rows.Clear();
-                        foreach (Dictionary<string, object> r in t2)
+                        if (t2 != null)
                         {
-                            gridCounts.Rows.Add(
-                                r.ContainsKey("person") ? r["person"] : "",
-                                r.ContainsKey("number_of_bookings") ? r["number_of_bookings"] : 0,
-                                r.ContainsKey("active_bookings") ? r["active_bookings"] : 0,
-                                r.ContainsKey("srn") ? r["srn"] : "",
-                                r.ContainsKey("email") ? r["email"] : "",
-                                r.ContainsKey("contact") ? r["contact"] : ""
-                            );
+                            foreach (object item in t2)
+                            {
+                                var r = item as Dictionary<string, object>;
+                                if (r == null) continue;
+                                gridCounts.Rows.Add(
+                                    r.ContainsKey("person") ? r["person"] : "",
+                                    r.ContainsKey("number_of_bookings") ? r["number_of_bookings"] : 0,
+                                    r.ContainsKey("active_bookings") ? r["active_bookings"] : 0,
+                                    r.ContainsKey("srn") ? r["srn"] : "",
+                                    r.ContainsKey("email") ? r["email"] : "",
+                                    r.ContainsKey("contact") ? r["contact"] : ""
+                                );
+                            }
                         }
                     }
 
                     if (data.ContainsKey("table3"))
                     {
-                        var t3 = (object[])data["table3"];
+                        var t3 = data["table3"] as System.Collections.IEnumerable;
                         gridStudents.Rows.Clear();
-                        foreach (Dictionary<string, object> r in t3)
+                        if (t3 != null)
                         {
-                            gridStudents.Rows.Add(
-                                r.ContainsKey("person") ? r["person"] : "",
-                                r.ContainsKey("contact") ? r["contact"] : "",
-                                r.ContainsKey("srn") ? r["srn"] : "",
-                                r.ContainsKey("encrypted_password") ? r["encrypted_password"] : "[AES-256 Encrypted]",
-                                r.ContainsKey("email") ? r["email"] : ""
-                            );
+                            foreach (object item in t3)
+                            {
+                                var r = item as Dictionary<string, object>;
+                                if (r == null) continue;
+                                gridStudents.Rows.Add(
+                                    r.ContainsKey("person") ? r["person"] : "",
+                                    r.ContainsKey("contact") ? r["contact"] : "",
+                                    r.ContainsKey("srn") ? r["srn"] : "",
+                                    r.ContainsKey("encrypted_password") ? r["encrypted_password"] : "[AES-256 Encrypted]",
+                                    r.ContainsKey("email") ? r["email"] : ""
+                                );
+                            }
                         }
                     }
                 }
