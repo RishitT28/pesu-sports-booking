@@ -6,6 +6,7 @@ import {
   Clock,
   Compass,
   FileText,
+  HelpCircle,
   LogOut,
   MapPin,
   Menu,
@@ -18,7 +19,6 @@ import {
 import { useState } from "react";
 import { PESLogo } from "./PESLogo";
 import { useApp } from "@/lib/store";
-import { USER } from "@/lib/data";
 
 const MAIN_NAV = [
   { to: "/", label: "Discover", icon: Compass },
@@ -26,10 +26,11 @@ const MAIN_NAV = [
   { to: "/matches", label: "Find Squads", icon: Users },
   { to: "/profile", label: "My Activity", icon: User },
   { to: "/notifications", label: "Notices", icon: Bell },
+  { to: "/help", label: "Help & Contacts", icon: HelpCircle },
 ] as const;
 
 export function TopNav() {
-  const { notifications, toggleSidebar } = useApp();
+  const { notifications, toggleSidebar, currentUser } = useApp();
   const [profileOpen, setProfileOpen] = useState(false);
   const unread = notifications.filter((n) => !n.read).length;
 
@@ -58,7 +59,7 @@ export function TopNav() {
               key={to}
               to={to}
               activeOptions={{ exact: to === "/" }}
-              className="relative px-3.5 py-2 text-sm font-normal text-[#cfd7e3] hover:text-white hover:bg-[#24344d]/60 transition-colors"
+              className="relative px-3 py-2 text-sm font-normal text-[#cfd7e3] hover:text-white hover:bg-[#24344d]/60 transition-colors"
               activeProps={{
                 className: "text-white border-b-2 border-[#c45524] font-semibold bg-[#24344d]",
               }}
@@ -95,10 +96,10 @@ export function TopNav() {
               className="flex items-center gap-2 py-1 px-1.5 hover:bg-[#25364e] transition-colors cursor-pointer text-left"
             >
               <div className="grid h-8 w-8 place-items-center bg-[#c45524] text-white text-xs font-bold border border-[#df6933]">
-                {USER.name[0]}
+                {currentUser?.name?.[0] || "R"}
               </div>
               <span className="hidden lg:inline-block text-xs font-medium text-[#f0f2f5]">
-                {USER.name}
+                {currentUser?.name || "Rishit"}
               </span>
               <ChevronDown className="h-3.5 w-3.5 text-[#a3afc2]" />
             </button>
@@ -109,10 +110,14 @@ export function TopNav() {
                 onClick={() => setProfileOpen(false)}
               >
                 <div className="p-3.5 border-b border-[#ded9cd] bg-[#f5f4ef]">
-                  <p className="text-sm font-bold text-[#1a2639]">{USER.fullName}</p>
-                  <p className="text-xs text-[#636a77] font-mono mt-0.5">SRN: PES1UG21CS123</p>
+                  <p className="text-sm font-bold text-[#1a2639]">
+                    {currentUser?.fullName || "Rishit Tathod"}
+                  </p>
+                  <p className="text-xs text-[#636a77] font-mono mt-0.5">
+                    SRN: {currentUser?.srn || "PES1UG21CS123"}
+                  </p>
                   <span className="mt-1.5 inline-block bg-[#1a2639] text-white text-[10px] font-semibold px-2 py-0.5">
-                    {USER.campus} · Student Athlete
+                    {currentUser?.campus || "RR Campus"} · Student Athlete
                   </span>
                 </div>
                 <div className="p-1 text-xs">
@@ -133,6 +138,13 @@ export function TopNav() {
                     className="flex w-full items-center gap-2.5 px-3 py-2 text-[#242831] hover:bg-[#f5f4ef]"
                   >
                     <Users className="h-3.5 w-3.5 text-[#c45524]" /> Open Games Roster
+                  </Link>
+                  <Link
+                    to="/help"
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-[#242831] hover:bg-[#f5f4ef]"
+                  >
+                    <HelpCircle className="h-3.5 w-3.5 text-[#1a2639]" /> Help & Directorate
+                    Contacts
                   </Link>
                   <Link
                     to="/login"
@@ -236,13 +248,13 @@ export function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#293b54] bg-[#1a2639] text-[#cfd7e3] md:hidden shadow-lg font-serif">
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-6">
         {MAIN_NAV.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
             activeOptions={{ exact: to === "/" }}
-            className="relative flex flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-[#cfd7e3] hover:text-white transition-colors"
+            className="relative flex flex-col items-center justify-center gap-1 py-2 text-[9px] font-medium text-[#cfd7e3] hover:text-white transition-colors"
             activeProps={{
               className: "text-white font-bold border-t-2 border-[#c45524] bg-[#24344d]",
             }}
@@ -253,7 +265,7 @@ export function BottomNav() {
                 <span className="absolute -right-1 -top-1 grid h-2 w-2 rounded-full bg-[#c45524]" />
               )}
             </span>
-            <span>{label}</span>
+            <span className="truncate max-w-[50px]">{label.split(" ")[0]}</span>
           </Link>
         ))}
       </div>

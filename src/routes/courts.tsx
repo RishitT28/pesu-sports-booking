@@ -470,8 +470,8 @@ function CourtsPage() {
                       <div className="absolute top-2 left-2 bg-[#1a2639] text-white px-2 py-0.5 text-[10px] font-semibold">
                         {court.indoor ? "Indoor Hall" : "Outdoor Arena"}
                       </div>
-                      <div className="absolute bottom-2 right-2 bg-white/95 text-[#1a2639] px-2 py-0.5 text-xs font-bold font-mono">
-                        ₹{court.pricePerHour}/hr
+                      <div className="absolute bottom-2 right-2 bg-white/95 text-[#1a2639] px-2 py-0.5 text-xs font-semibold">
+                        Free Student Pass
                       </div>
                     </div>
 
@@ -602,7 +602,7 @@ function CourtsPage() {
                                   isSelected ? "text-white/90" : "text-[#636a77]"
                                 }`}
                               >
-                                Student fee: ₹{court.pricePerHour}
+                                Access: Free with Student ID
                               </p>
                             </div>
 
@@ -635,8 +635,8 @@ function CourtsPage() {
                 <strong className="text-[#1a2639]">
                   {formatHour(selected.hour)} – {formatHour(selected.hour + 1)}
                 </strong>{" "}
-                · Student Fee:{" "}
-                <strong className="text-[#1a2639]">₹{selected.court.pricePerHour}</strong>
+                · Facility Access:{" "}
+                <strong className="text-[#1a2639]">Free (PESU Student Clearance)</strong>
               </p>
             </div>
 

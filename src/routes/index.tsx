@@ -211,8 +211,8 @@ function HomePage() {
                     <div className="absolute top-2 left-2 bg-[#1a2639] text-white px-2 py-0.5 text-[10px] font-medium">
                       {court.indoor ? "Indoor" : "Outdoor"}
                     </div>
-                    <div className="absolute bottom-2 right-2 bg-white/95 text-[#1a2639] px-2 py-0.5 text-xs font-bold font-mono">
-                      ₹{court.pricePerHour}/hr
+                    <div className="absolute bottom-2 right-2 bg-white/95 text-[#1a2639] px-2 py-0.5 text-xs font-semibold">
+                      Free Student Pass
                     </div>
                   </div>
 

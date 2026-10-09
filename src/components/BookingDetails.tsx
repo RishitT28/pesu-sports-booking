@@ -60,7 +60,9 @@ export function BookingDetails({ booking }: { booking: Booking }) {
           <Tag className="h-3.5 w-3.5 text-[#c45524]" />
           Ref: {booking.id}
         </span>
-        <span className="font-semibold text-[#1a2639]">Student Fee: ₹{booking.price || 0}</span>
+        <span className="font-semibold text-[#1a2639]">
+          Facility Access: Free (PESU Student Pass)
+        </span>
       </div>
     </div>
   );

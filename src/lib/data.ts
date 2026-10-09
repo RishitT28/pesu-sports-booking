@@ -86,7 +86,7 @@ export const COURTS: Court[] = [
     name: "Badminton Court 1",
     sport: "badminton",
     campus: "RR Campus",
-    pricePerHour: 120,
+    pricePerHour: 0,
     indoor: true,
     rating: 4.8,
     image:
@@ -99,7 +99,7 @@ export const COURTS: Court[] = [
     name: "Badminton Court 2",
     sport: "badminton",
     campus: "RR Campus",
-    pricePerHour: 120,
+    pricePerHour: 0,
     indoor: true,
     rating: 4.6,
     image:
@@ -112,7 +112,7 @@ export const COURTS: Court[] = [
     name: "Badminton Arena",
     sport: "badminton",
     campus: "EC Campus",
-    pricePerHour: 100,
+    pricePerHour: 0,
     indoor: true,
     rating: 4.5,
     image:
@@ -125,7 +125,7 @@ export const COURTS: Court[] = [
     name: "Squash Court A",
     sport: "squash",
     campus: "RR Campus",
-    pricePerHour: 150,
+    pricePerHour: 0,
     indoor: true,
     rating: 4.9,
     image:
@@ -138,7 +138,7 @@ export const COURTS: Court[] = [
     name: "Squash Court B",
     sport: "squash",
     campus: "EC Campus",
-    pricePerHour: 130,
+    pricePerHour: 0,
     indoor: true,
     rating: 4.4,
     image:
@@ -151,7 +151,7 @@ export const COURTS: Court[] = [
     name: "TT Hall — Table 1",
     sport: "tabletennis",
     campus: "RR Campus",
-    pricePerHour: 60,
+    pricePerHour: 0,
     indoor: true,
     rating: 4.3,
     image:
@@ -164,7 +164,7 @@ export const COURTS: Court[] = [
     name: "TT Hall — Table 2",
     sport: "tabletennis",
     campus: "EC Campus",
-    pricePerHour: 50,
+    pricePerHour: 0,
     indoor: true,
     rating: 4.2,
     image:
@@ -177,7 +177,7 @@ export const COURTS: Court[] = [
     name: "Basketball Court",
     sport: "basketball",
     campus: "RR Campus",
-    pricePerHour: 200,
+    pricePerHour: 0,
     indoor: false,
     rating: 4.7,
     image:
@@ -190,7 +190,7 @@ export const COURTS: Court[] = [
     name: "Turf (Box)",
     sport: "cricket",
     campus: "EC Campus",
-    pricePerHour: 500,
+    pricePerHour: 0,
     indoor: false,
     rating: 4.8,
     image:
@@ -203,7 +203,7 @@ export const COURTS: Court[] = [
     name: "Chess Lounge",
     sport: "chess",
     campus: "RR Campus",
-    pricePerHour: 40,
+    pricePerHour: 0,
     indoor: true,
     rating: 4.6,
     image:
