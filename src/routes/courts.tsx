@@ -157,8 +157,6 @@ function CourtsPage() {
       campus: selected.court.campus,
       dateLabel,
       hour: selected.hour,
-      price: selected.court.pricePerHour,
-      splitWith: [],
     });
     setConfirmedBookingId(b.id);
     setSelected(null);

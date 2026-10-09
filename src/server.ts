@@ -47,6 +47,24 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname.startsWith("/api")) {
+        const targetUrl = new URL(url.pathname + url.search, "http://localhost:8081");
+        const headers = new Headers(request.headers);
+        headers.set("host", "localhost:8081");
+
+        const init: RequestInit = {
+          method: request.method,
+          headers,
+        };
+
+        if (request.method !== "GET" && request.method !== "HEAD") {
+          init.body = await request.arrayBuffer();
+        }
+
+        return await fetch(targetUrl.toString(), init);
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

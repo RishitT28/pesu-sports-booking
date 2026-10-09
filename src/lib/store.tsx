@@ -141,6 +141,89 @@ const SEED_QUEUES: QueueRequest[] = [
   },
 ];
 
+type DbBooking = {
+  id: string;
+  court_id: string;
+  court_name: string;
+  sport: Sport;
+  campus: Campus;
+  date_label: string;
+  hour: number;
+  status: "upcoming" | "completed" | "cancelled";
+};
+
+type DbQueue = {
+  id: string;
+  court_id: string;
+  court_name: string;
+  sport: Sport;
+  campus: Campus;
+  date_label: string;
+  hour: number;
+  position: number;
+  status: "waiting" | "promoted" | "cancelled";
+  created_at: string;
+};
+
+type DbMatch = {
+  id: string;
+  sport: Sport;
+  title: string;
+  host: string;
+  campus: Campus;
+  court: string;
+  time: string;
+  skill: string;
+  players: string[];
+  max_players: number;
+};
+
+type DbNotif = {
+  id: string;
+  title: string;
+  body: string;
+  kind: "booking" | "match" | "system";
+  time: string;
+  read: number;
+};
+
+type DbStudent = {
+  srn: string;
+  prn: string;
+  name: string;
+  full_name: string;
+  department: string;
+  campus: string;
+  semester: string;
+  skill: string;
+  email: string;
+  phone: string;
+  clearance_status: string;
+  favorite_sports: string;
+  hours_logged: number;
+  matches_played: number;
+};
+
+// Dual-route API caller: uses relative path with direct port 8081 fallback
+async function callApi<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  // 1. Try relative URL (proxied by server.ts on 8080)
+  try {
+    const res = await fetch(endpoint, options);
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      return (await res.json()) as T;
+    }
+  } catch (_err) {
+    // Relative call failed or timed out, fall back to direct 8081 API
+  }
+
+  // 2. Direct fallback to port 8081
+  const directUrl =
+    "http://localhost:8081" + (endpoint.startsWith("/") ? endpoint : "/" + endpoint);
+  const directRes = await fetch(directUrl, options);
+  return (await directRes.json()) as T;
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<StudentUser>(DEFAULT_STUDENT);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -157,11 +240,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const [bookingsRes, queueRes, matchesRes, notifRes, emailCfgRes] = await Promise.allSettled(
           [
-            fetch("/api/bookings?srn=" + currentUser.srn).then((r) => r.json()),
-            fetch("/api/queue?srn=" + currentUser.srn).then((r) => r.json()),
-            fetch("/api/matches").then((r) => r.json()),
-            fetch("/api/notifications?srn=" + currentUser.srn).then((r) => r.json()),
-            fetch("/api/email/config").then((r) => r.json()),
+            callApi<DbBooking[]>("/api/bookings?srn=" + currentUser.srn),
+            callApi<DbQueue[]>("/api/queue?srn=" + currentUser.srn),
+            callApi<DbMatch[]>("/api/matches"),
+            callApi<DbNotif[]>("/api/notifications?srn=" + currentUser.srn),
+            callApi<{ adminEmail?: string }>("/api/email/config"),
           ],
         );
 
@@ -247,13 +330,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       adminEmailAgent,
       login: async (srnOrPrn, password) => {
         try {
-          const res = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ srnOrPrn, password }),
-          });
-          const data = await res.json();
-          if (data.success && data.student) {
+          const data = await callApi<{ success?: boolean; student?: DbStudent; error?: string }>(
+            "/api/auth/login",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ srnOrPrn, password }),
+            },
+          );
+          if (data && data.success && data.student) {
             const s = data.student;
             const userObj: StudentUser = {
               srn: s.srn,
@@ -275,7 +360,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             setIsLoggedIn(true);
             return { success: true };
           }
-          return { success: false, error: data.error || "Authentication failed" };
+          return { success: false, error: data?.error || "Authentication failed" };
         } catch (err) {
           // Client-side fallback authentication if backend offline
           if (srnOrPrn.trim().length > 3 && password.length > 3) {
@@ -287,13 +372,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       register: async (studentData) => {
         try {
-          const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(studentData),
-          });
-          const data = await res.json();
-          if (data.success && data.student) {
+          const data = await callApi<{ success?: boolean; student?: DbStudent; error?: string }>(
+            "/api/auth/register",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(studentData),
+            },
+          );
+          if (data && data.success && data.student) {
             const s = data.student;
             const userObj: StudentUser = {
               srn: s.srn,
@@ -315,8 +402,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
             setIsLoggedIn(true);
             return { success: true };
           }
-          return { success: false, error: data.error || "Registration failed" };
+          return { success: false, error: data?.error || "Registration failed" };
         } catch (err) {
+          // Client-side offline fallback
+          if (studentData.srn && studentData.password) {
+            const fallbackUser: StudentUser = {
+              srn: studentData.srn,
+              prn: studentData.prn || studentData.srn,
+              name: studentData.name || studentData.fullName || "Student",
+              fullName: studentData.fullName || studentData.name || "PES Student",
+              department: studentData.department || "Computer Science & Engineering",
+              campus: (studentData.campus as Campus) || "RR Campus",
+              semester: "Semester 1",
+              skill: "Intermediate",
+              email: `${(studentData.name || "student").toLowerCase().replace(/\s+/g, "")}@pesu.pes.edu`,
+              phone: "+91 98765 43210",
+              clearanceStatus: "Active Clearance",
+              favoriteSports: ["badminton"],
+              hoursLogged: 0,
+              matchesPlayed: 0,
+            };
+            setCurrentUser(fallbackUser);
+            setIsLoggedIn(true);
+            return { success: true };
+          }
           return { success: false, error: "Network error connecting to auth server" };
         }
       },
@@ -325,26 +434,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       updateProfile: async (updates) => {
         try {
-          const res = await fetch("/api/auth/update-profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              srn: currentUser.srn,
-              full_name: updates.fullName || currentUser.fullName,
-              campus: updates.campus || currentUser.campus,
-              department: updates.department || currentUser.department,
-              email: updates.email || currentUser.email,
-              phone: updates.phone || currentUser.phone,
-              skill: updates.skill || currentUser.skill,
-              favorite_sports: JSON.stringify(updates.favoriteSports || currentUser.favoriteSports),
-            }),
-          });
-          const data = await res.json();
-          if (data.success) {
+          const data = await callApi<{ success?: boolean; error?: string }>(
+            "/api/auth/update-profile",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                srn: currentUser.srn,
+                full_name: updates.fullName || currentUser.fullName,
+                campus: updates.campus || currentUser.campus,
+                department: updates.department || currentUser.department,
+                email: updates.email || currentUser.email,
+                phone: updates.phone || currentUser.phone,
+                skill: updates.skill || currentUser.skill,
+                favorite_sports: JSON.stringify(
+                  updates.favoriteSports || currentUser.favoriteSports,
+                ),
+              }),
+            },
+          );
+          if (data && data.success) {
             setCurrentUser((prev) => ({ ...prev, ...updates }));
             return { success: true };
           }
-          return { success: false, error: data.error };
+          return {
+            success: false,
+            ...(data?.error ? { error: data.error } : {}),
+          };
         } catch (err) {
           setCurrentUser((prev) => ({ ...prev, ...updates }));
           return { success: true };
@@ -352,17 +468,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       changePassword: async (currentPassword, newPassword) => {
         try {
-          const res = await fetch("/api/auth/change-password", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              srn: currentUser.srn,
-              currentPassword,
-              newPassword,
-            }),
-          });
-          const data = await res.json();
-          return data;
+          const data = await callApi<{ success?: boolean; error?: string; message?: string }>(
+            "/api/auth/change-password",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                srn: currentUser.srn,
+                currentPassword,
+                newPassword,
+              }),
+            },
+          );
+          return {
+            success: Boolean(data?.success),
+            ...(data?.error ? { error: data.error } : {}),
+            ...(data?.message ? { message: data.message } : {}),
+          };
         } catch (err) {
           return { success: false, error: "Failed to connect to authentication server" };
         }
@@ -395,7 +517,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ]);
 
         // Send to backend in background
-        fetch("/api/bookings", {
+        callApi("/api/bookings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -430,51 +552,53 @@ export function AppProvider({ children }: { children: ReactNode }) {
               const sorted = [...waitingForSlot].sort((a, b) => a.position - b.position);
               const firstInLine = sorted[0];
 
-              const promotedBooking: Booking = {
-                id: `bk-${Date.now()}`,
-                courtId: firstInLine.courtId,
-                courtName: firstInLine.courtName,
-                sport: firstInLine.sport,
-                campus: firstInLine.campus,
-                dateLabel: firstInLine.dateLabel,
-                hour: firstInLine.hour,
-                status: "upcoming",
-              };
+              if (firstInLine) {
+                const promotedBooking: Booking = {
+                  id: `bk-${Date.now()}`,
+                  courtId: firstInLine.courtId,
+                  courtName: firstInLine.courtName,
+                  sport: firstInLine.sport,
+                  campus: firstInLine.campus,
+                  dateLabel: firstInLine.dateLabel,
+                  hour: firstInLine.hour,
+                  status: "upcoming",
+                };
 
-              setBookings((b) => [...b, promotedBooking]);
-              setNotifications((notifs) => [
-                {
-                  id: `n-${Date.now()}`,
-                  title: "Queue Slot Promoted!",
-                  body: `A slot was released for ${firstInLine.courtName} on ${firstInLine.dateLabel} at ${firstInLine.hour % 12 === 0 ? 12 : firstInLine.hour % 12}:00 ${firstInLine.hour < 12 ? "AM" : "PM"}. You have been automatically promoted from the waitlist to a confirmed reservation!`,
-                  time: "Just now",
-                  kind: "booking",
-                  read: false,
-                },
-                ...notifs,
-              ]);
+                setBookings((b) => [...b, promotedBooking]);
+                setNotifications((notifs) => [
+                  {
+                    id: `n-${Date.now()}`,
+                    title: "Queue Slot Promoted!",
+                    body: `A slot was released for ${firstInLine.courtName} on ${firstInLine.dateLabel} at ${firstInLine.hour % 12 === 0 ? 12 : firstInLine.hour % 12}:00 ${firstInLine.hour < 12 ? "AM" : "PM"}. You have been automatically promoted from the waitlist to a confirmed reservation!`,
+                    time: "Just now",
+                    kind: "booking",
+                    read: false,
+                  },
+                  ...notifs,
+                ]);
 
-              return prevQueue.map((q) => {
-                if (q.id === firstInLine.id) {
-                  return { ...q, status: "promoted" };
-                }
-                if (
-                  q.courtId === target.courtId &&
-                  q.dateLabel === target.dateLabel &&
-                  q.hour === target.hour &&
-                  q.status === "waiting"
-                ) {
-                  return { ...q, position: 1 };
-                }
-                return q;
-              });
+                return prevQueue.map((q) => {
+                  if (q.id === firstInLine.id) {
+                    return { ...q, status: "promoted" };
+                  }
+                  if (
+                    q.courtId === target.courtId &&
+                    q.dateLabel === target.dateLabel &&
+                    q.hour === target.hour &&
+                    q.status === "waiting"
+                  ) {
+                    return { ...q, position: 1 };
+                  }
+                  return q;
+                });
+              }
             }
             return prevQueue;
           });
         }
 
         // Notify backend
-        fetch("/api/bookings/cancel", {
+        callApi("/api/bookings/cancel", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ bookingId: id }),
@@ -519,7 +643,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ...prev,
         ]);
 
-        fetch("/api/queue", {
+        callApi("/api/queue", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -539,7 +663,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setQueueRequests((prev) =>
           prev.map((q) => (q.id === id ? { ...q, status: "cancelled" } : q)),
         );
-        fetch("/api/queue/cancel", {
+        callApi("/api/queue/cancel", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ queueId: id }),
@@ -573,7 +697,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
         setCurrentUser((u) => ({ ...u, matchesPlayed: u.matchesPlayed + 1 }));
 
-        fetch("/api/matches/join", {
+        callApi("/api/matches/join", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ matchId: id, playerName: currentUser.name }),
@@ -587,7 +711,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         };
         setMatches((prev) => [match, ...prev]);
 
-        fetch("/api/matches", {
+        callApi("/api/matches", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -606,7 +730,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markAllRead: () => {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-        fetch("/api/notifications/read", {
+        callApi("/api/notifications/read", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ srn: currentUser.srn }),

@@ -6,13 +6,9 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
-  server: {
-    port: 8080,
-    proxy: {
-      "/api": {
-        target: "http://localhost:8081",
-        changeOrigin: true,
-      },
+  vite: {
+    server: {
+      port: 8080,
     },
   },
   tanstackStart: {

@@ -113,7 +113,7 @@ function LoginPage() {
     try {
       const res = await register({
         srn: regSrn.trim(),
-        prn: regPrn.trim() || undefined,
+        ...(regPrn.trim() ? { prn: regPrn.trim() } : {}),
         name: regName.trim().split(" ")[0] || regName.trim(),
         fullName: regName.trim(),
         campus: regCampus,
