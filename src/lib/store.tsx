@@ -32,6 +32,7 @@ type AppState = {
   addBooking: (b: Omit<Booking, "id" | "status">) => Booking;
   cancelBooking: (id: string) => void;
   joinMatch: (id: string) => void;
+  createMatch: (m: Omit<Match, "id" | "players">) => Match;
   markAllRead: () => void;
 };
 
@@ -100,6 +101,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ),
         );
         setMatchesPlayed((n) => n + 1);
+      },
+      createMatch: (m) => {
+        const match: Match = {
+          ...m,
+          id: `m-${Date.now()}`,
+          players: [m.host],
+        };
+        setMatches((prev) => [match, ...prev]);
+        setNotifications((prev) => [
+          {
+            id: `n-${Date.now()}`,
+            title: "Game created",
+            body: `${match.title} · ${match.court} (${match.campus}) · ${match.time}. Squad listed on open board.`,
+            time: "Just now",
+            kind: "match",
+            read: false,
+          },
+          ...prev,
+        ]);
+        return match;
       },
       markAllRead: () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true }))),
     }),

@@ -9,12 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#0080b0] text-white hover:bg-[#006f9c] active:bg-[#005f85] shadow-xs",
-        destructive: "bg-[#d9534f] text-white hover:bg-[#c9302c] shadow-xs",
-        outline: "border border-[#cbd5e1] bg-white text-[#334155] hover:bg-[#f1f5f9] shadow-xs",
-        secondary: "bg-[#eef2f6] text-[#0f172a] hover:bg-[#e2e8f0]",
-        ghost: "hover:bg-[#eef2f6] text-[#334155]",
-        link: "text-[#0080b0] underline-offset-4 hover:underline",
+        default:
+          "bg-[#e35925] text-white hover:bg-[#cf4d1c] active:bg-[#b84317] font-bold tracking-wider uppercase text-xs shadow-xs",
+        destructive:
+          "bg-[#d9433b] text-white hover:bg-[#c33830] font-bold tracking-wider uppercase text-xs shadow-xs",
+        outline:
+          "border border-[#e5e7eb] bg-white text-[#111827] hover:bg-[#f8f8fa] font-bold tracking-wider uppercase text-xs shadow-xs",
+        secondary:
+          "bg-[#0d1b2a] text-white hover:bg-[#1b2d42] font-bold tracking-wider uppercase text-xs shadow-xs",
+        ghost: "hover:bg-[#f1f3f6] text-[#111827] font-semibold text-xs",
+        link: "text-[#e35925] underline-offset-4 hover:underline font-semibold",
       },
       size: {
         default: "h-9 px-4 py-2",

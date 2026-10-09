@@ -3,15 +3,65 @@ export type Sport = {
   name: string;
   icon: string;
   color: string;
+  image: string;
+  tagline: string;
 };
 
 export const SPORTS: Sport[] = [
-  { id: "badminton", name: "Badminton", icon: "activity", color: "#0080b0" },
-  { id: "squash", name: "Squash", icon: "circle-dot", color: "#0b5788" },
-  { id: "tabletennis", name: "Table Tennis", icon: "disc", color: "#0284c7" },
-  { id: "basketball", name: "Basketball", icon: "target", color: "#ea580c" },
-  { id: "cricket", name: "Turf", icon: "shield", color: "#16a34a" },
-  { id: "chess", name: "Chess", icon: "grid", color: "#475569" },
+  {
+    id: "badminton",
+    name: "Badminton",
+    icon: "activity",
+    color: "#e35925",
+    image:
+      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1000&auto=format&fit=crop",
+    tagline: "Synthetic Wooden Courts · Singles & Doubles",
+  },
+  {
+    id: "basketball",
+    name: "Basketball",
+    icon: "target",
+    color: "#e35925",
+    image:
+      "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1000&auto=format&fit=crop",
+    tagline: "Hardwood & Outdoor Courts · Full Runs & 3v3",
+  },
+  {
+    id: "squash",
+    name: "Squash",
+    icon: "circle-dot",
+    color: "#0d1b2a",
+    image:
+      "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=1000&auto=format&fit=crop",
+    tagline: "Glass Back Wall · High-Speed Rallies",
+  },
+  {
+    id: "tabletennis",
+    name: "Table Tennis",
+    icon: "disc",
+    color: "#0d1b2a",
+    image:
+      "https://images.unsplash.com/photo-1534158914592-062992fbe900?q=80&w=1000&auto=format&fit=crop",
+    tagline: "Competition Stiga Tables · Air-Conditioned Hall",
+  },
+  {
+    id: "cricket",
+    name: "Turf",
+    icon: "shield",
+    color: "#e35925",
+    image:
+      "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=1000&auto=format&fit=crop",
+    tagline: "All-Weather Box Turf · Floodlit Nights",
+  },
+  {
+    id: "chess",
+    name: "Chess",
+    icon: "grid",
+    color: "#475569",
+    image:
+      "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?q=80&w=1000&auto=format&fit=crop",
+    tagline: "FIDE Competition Boards · Quiet Lounge",
+  },
 ];
 
 export const CAMPUSES = ["RR Campus", "EC Campus"] as const;
@@ -25,6 +75,9 @@ export type Court = {
   pricePerHour: number;
   indoor: boolean;
   rating: number;
+  image?: string;
+  equipment?: string;
+  capacity?: string;
 };
 
 export const COURTS: Court[] = [
@@ -36,6 +89,10 @@ export const COURTS: Court[] = [
     pricePerHour: 120,
     indoor: true,
     rating: 4.8,
+    image:
+      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Yonex Net, Non-Marking Mat, LED Floodlights",
+    capacity: "4 Players Max",
   },
   {
     id: "c2",
@@ -45,6 +102,10 @@ export const COURTS: Court[] = [
     pricePerHour: 120,
     indoor: true,
     rating: 4.6,
+    image:
+      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Synthetic Court Mat, Practice Net",
+    capacity: "4 Players Max",
   },
   {
     id: "c3",
@@ -54,6 +115,10 @@ export const COURTS: Court[] = [
     pricePerHour: 100,
     indoor: true,
     rating: 4.5,
+    image:
+      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Dual Court Bay, Electronic Scoreboard",
+    capacity: "4 Players Max",
   },
   {
     id: "c4",
@@ -63,6 +128,10 @@ export const COURTS: Court[] = [
     pricePerHour: 150,
     indoor: true,
     rating: 4.9,
+    image:
+      "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Impact Glass Back Wall, Dunlop Official Balls",
+    capacity: "2 Players Max",
   },
   {
     id: "c5",
@@ -72,6 +141,10 @@ export const COURTS: Court[] = [
     pricePerHour: 130,
     indoor: true,
     rating: 4.4,
+    image:
+      "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Hardwood Floor, Ventilation System",
+    capacity: "2 Players Max",
   },
   {
     id: "c6",
@@ -81,6 +154,10 @@ export const COURTS: Court[] = [
     pricePerHour: 60,
     indoor: true,
     rating: 4.3,
+    image:
+      "https://images.unsplash.com/photo-1534158914592-062992fbe900?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Stiga Expert Roller 25mm, Stag Net System",
+    capacity: "4 Players Max",
   },
   {
     id: "c7",
@@ -90,6 +167,10 @@ export const COURTS: Court[] = [
     pricePerHour: 50,
     indoor: true,
     rating: 4.2,
+    image:
+      "https://images.unsplash.com/photo-1534158914592-062992fbe900?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Tournament Blue Top, Barrier Dividers",
+    capacity: "4 Players Max",
   },
   {
     id: "c8",
@@ -99,6 +180,10 @@ export const COURTS: Court[] = [
     pricePerHour: 200,
     indoor: false,
     rating: 4.7,
+    image:
+      "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Full FIBA Court, Breakaway Hoops, Night Lighting",
+    capacity: "10 Players Max",
   },
   {
     id: "c9",
@@ -108,6 +193,10 @@ export const COURTS: Court[] = [
     pricePerHour: 500,
     indoor: false,
     rating: 4.8,
+    image:
+      "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=1000&auto=format&fit=crop",
+    equipment: "All-Weather 40mm Astroturf, Enclosed Netting, 6 Floodlights",
+    capacity: "14 Players Max",
   },
   {
     id: "c10",
@@ -117,6 +206,10 @@ export const COURTS: Court[] = [
     pricePerHour: 40,
     indoor: true,
     rating: 4.6,
+    image:
+      "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?q=80&w=1000&auto=format&fit=crop",
+    equipment: "Weighted Staunton Pieces, DGT Digital Clocks",
+    capacity: "2 Players per Board",
   },
 ];
 

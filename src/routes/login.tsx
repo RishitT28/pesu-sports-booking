@@ -1,22 +1,23 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Lock, ShieldCheck, User } from "lucide-react";
 import { useState } from "react";
 import { PESLogo } from "@/components/PESLogo";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "PES University — Student Portal Login" },
+      { title: "PESU Sports — Student Portal Authentication" },
       {
         name: "description",
         content:
-          "Sign in with your PESU student credentials to access the sports facilities booking portal.",
+          "Sign in with your PES University credentials to access athletic facilities and court bookings.",
       },
-      { property: "og:title", content: "PES University — Student Portal Login" },
+      { property: "og:title", content: "PESU Sports — Student Portal Authentication" },
       {
         property: "og:description",
         content:
-          "Sign in with your PESU student credentials to access the sports facilities booking portal.",
+          "Sign in with your PES University credentials to access athletic facilities and court bookings.",
       },
     ],
   }),
@@ -25,31 +26,36 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [srn, setSrn] = useState("");
-  const [password, setPassword] = useState("");
+  const [srn, setSrn] = useState("PES1UG21CS123");
+  const [password, setPassword] = useState("••••••••");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!srn.trim() || !password.trim()) {
-      setError("Please enter your SRN / PRN and password.");
+      setError("Please provide a valid SRN or PRN and password.");
       return;
     }
     navigate({ to: "/" });
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f0f3f6] px-4 py-10 font-sans">
-      <div className="w-full max-w-md bg-white border border-[#cbd5e1] rounded-none shadow-md p-6 sm:p-8">
-        {/* PES University Header */}
-        <div className="flex flex-col items-center text-center border-b border-[#e2e8f0] pb-6">
+    <div className="flex min-h-screen items-center justify-center bg-[#f8f8fa] px-4 py-12 font-sans">
+      <div className="w-full max-w-md bg-white border border-[#e5e7eb] border-t-4 border-t-[#0d1b2a] shadow-xl p-6 sm:p-8 rounded-none">
+        {/* PESU Sports Header */}
+        <div className="flex flex-col items-center text-center border-b border-[#f1f3f6] pb-6">
           <PESLogo />
-          <h1 className="mt-4 text-base font-bold uppercase tracking-wider text-[#084d7a]">
-            Student Portal Authentication
-          </h1>
+          <div className="mt-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#e35925]">
+              Athletics Clearance System
+            </span>
+            <h1 className="text-xl font-black uppercase tracking-tight text-[#111827] mt-0.5">
+              Student Sign In
+            </h1>
+          </div>
           <p className="mt-1 text-xs text-[#64748b]">
-            Department of Physical Education & Sports Booking
+            Use your official PESU Academy credentials to access courts and squads.
           </p>
         </div>
 
@@ -58,9 +64,9 @@ function LoginPage() {
           <div className="space-y-1.5">
             <label
               htmlFor="srn"
-              className="text-xs font-bold text-[#475569] uppercase tracking-wide"
+              className="text-[11px] font-bold text-[#475569] uppercase tracking-wider block"
             >
-              SRN / PRN / Roll No
+              SRN / PRN / Roll Number
             </label>
             <div className="relative">
               <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
@@ -71,7 +77,7 @@ function LoginPage() {
                 onChange={(e) => setSrn(e.target.value)}
                 placeholder="e.g. PES1UG21CS123"
                 autoComplete="username"
-                className="w-full rounded-none border border-[#cbd5e1] bg-white py-2 pl-9 pr-3 text-xs text-[#1e293b] placeholder:text-[#94a3b8] outline-none transition-colors focus:border-[#0080b0]"
+                className="w-full rounded-none border border-[#e5e7eb] bg-[#f8f8fa] py-2 pl-9 pr-3 text-xs text-[#111827] placeholder:text-[#94a3b8] outline-none transition-colors focus:border-[#0d1b2a] focus:bg-white"
               />
             </div>
           </div>
@@ -79,7 +85,7 @@ function LoginPage() {
           <div className="space-y-1.5">
             <label
               htmlFor="password"
-              className="text-xs font-bold text-[#475569] uppercase tracking-wide"
+              className="text-[11px] font-bold text-[#475569] uppercase tracking-wider block"
             >
               Password
             </label>
@@ -90,9 +96,9 @@ function LoginPage() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter PESU password"
+                placeholder="Enter password"
                 autoComplete="current-password"
-                className="w-full rounded-none border border-[#cbd5e1] bg-white py-2 pl-9 pr-10 text-xs text-[#1e293b] placeholder:text-[#94a3b8] outline-none transition-colors focus:border-[#0080b0]"
+                className="w-full rounded-none border border-[#e5e7eb] bg-[#f8f8fa] py-2 pl-9 pr-10 text-xs text-[#111827] placeholder:text-[#94a3b8] outline-none transition-colors focus:border-[#0d1b2a] focus:bg-white"
               />
               <button
                 type="button"
@@ -111,18 +117,23 @@ function LoginPage() {
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="w-full rounded-none bg-[#0080b0] hover:bg-[#006f9c] py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors"
+            className="w-full rounded-none bg-[#e35925] hover:bg-[#c84a1b] py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors"
           >
-            Sign In to Portal
-          </button>
+            Authenticate & Enter
+          </Button>
         </form>
 
-        {/* Footer info matching PESU Academy */}
-        <div className="mt-6 pt-4 border-t border-[#e2e8f0] text-center text-[10px] text-[#94a3b8] space-y-1">
-          <p>PES University, 100 Feet Ring Road, BSK III Stage, Bangalore - 560085</p>
-          <p>For credentials support, contact IT Services or Physical Education Office.</p>
+        {/* Security badge and campus notice */}
+        <div className="mt-6 pt-4 border-t border-[#f1f3f6] flex items-center justify-center gap-2 text-[10px] text-[#64748b]">
+          <ShieldCheck className="h-3.5 w-3.5 text-[#10b981]" />
+          <span>PESU Single Sign-On SSO Protected</span>
+        </div>
+
+        <div className="mt-4 text-center text-[10px] text-[#94a3b8] space-y-1 font-mono">
+          <p>PES University · Department of Physical Education</p>
+          <p>RR Campus (Ring Road) & EC Campus (Electronic City)</p>
         </div>
       </div>
     </div>

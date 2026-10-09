@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, Info, MapPin } from "lucide-react";
+import { Check, Clock, Info, MapPin, ShieldCheck, Sparkles, UserCheck, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   CAMPUSES,
@@ -26,15 +26,17 @@ export const Route = createFileRoute("/courts")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "PES University — Book a Court" },
+      { title: "PESU Sports — Book Facilities & Courts" },
       {
         name: "description",
-        content: "Browse and book badminton, squash, basketball, turf and more at PES University.",
+        content:
+          "Browse live availability and reserve badminton, basketball, squash, and turf courts at PES University.",
       },
-      { property: "og:title", content: "PES University — Book a Court" },
+      { property: "og:title", content: "PESU Sports — Book Facilities & Courts" },
       {
         property: "og:description",
-        content: "Browse and book badminton, squash, basketball, turf and more at PES University.",
+        content:
+          "Browse live availability and reserve badminton, basketball, squash, and turf courts at PES University.",
       },
     ],
   }),
@@ -79,49 +81,55 @@ function Courts() {
   const confirmedBooking = bookings.find((booking) => booking.id === confirmed);
 
   return (
-    <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Page Title & Breadcrumbs header matching PESU Academy */}
-      <div className="bg-white border border-[#cbd5e1] p-4 rounded-none shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e2e8f0] pb-3">
+    <main className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
+      {/* 1. Sleek Editorial Header */}
+      <div className="bg-white border border-[#e5e7eb] border-l-4 border-l-[#0d1b2a] p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#f1f3f6] pb-4">
           <div>
-            <h1 className="text-xl font-bold text-[#084d7a] uppercase tracking-wide">
-              Sports Facilities — Court Booking
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#e35925]">
+              Athletic Facilities Directory
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#111827] uppercase tracking-tight">
+              Reserve a Court
             </h1>
-            <p className="text-xs text-[#64748b] mt-0.5">
-              Reserve slots for indoor and outdoor sports complexes at RR Campus and EC Campus
+            <p className="text-xs text-[#64748b] mt-1 font-medium">
+              Live turnstile-connected slot availability across RR Campus and EC Campus.
             </p>
           </div>
-          <div className="text-xs font-mono text-[#084d7a] bg-[#f0f3f6] px-3 py-1.5 border border-[#dbe2ea] rounded-none">
-            Status: Facility Active (06:00 – 22:00)
+          <div className="flex items-center gap-2 bg-[#f8f8fa] px-3 py-1.5 border border-[#e5e7eb] self-start sm:self-auto">
+            <span className="h-2 w-2 rounded-full bg-[#10b981]" />
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#0d1b2a]">
+              TURNSTILES LIVE · 06:00 – 22:00
+            </span>
           </div>
         </div>
 
-        {/* Filter Controls Bar */}
-        <div className="mt-4 space-y-3">
+        {/* 2. Sleek Filter Controls Bar */}
+        <div className="mt-5 space-y-4">
           {/* Sports Filter Row */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#475569] mb-1.5">
-              Filter By Sport
+            <label className="block text-[10px] font-black uppercase tracking-widest text-[#64748b] mb-2">
+              Select Sport Discipline
             </label>
             <div className="no-scrollbar flex flex-wrap gap-1.5 overflow-x-auto pb-1">
               <button
                 onClick={() => navigate({ search: {} })}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-none transition-colors border ${
+                className={`px-3.5 py-2 text-xs font-black uppercase tracking-wider transition-colors border ${
                   !sport
-                    ? "bg-[#0080b0] text-white border-[#0080b0]"
-                    : "bg-white text-[#334155] border-[#cbd5e1] hover:bg-[#f1f5f9]"
+                    ? "bg-[#0d1b2a] text-white border-[#0d1b2a]"
+                    : "bg-[#f8f8fa] text-[#475569] border-[#e5e7eb] hover:bg-white hover:text-[#111827]"
                 }`}
               >
-                All Sports
+                All Disciplines
               </button>
               {SPORTS.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => navigate({ search: { sport: s.id } })}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-none transition-colors border ${
+                  className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-black uppercase tracking-wider transition-colors border ${
                     sport === s.id
-                      ? "bg-[#0080b0] text-white border-[#0080b0]"
-                      : "bg-white text-[#334155] border-[#cbd5e1] hover:bg-[#f1f5f9]"
+                      ? "bg-[#e35925] text-white border-[#e35925]"
+                      : "bg-[#f8f8fa] text-[#475569] border-[#e5e7eb] hover:bg-white hover:text-[#111827]"
                   }`}
                 >
                   <SportIcon sport={s.id} className="h-3.5 w-3.5" />
@@ -131,19 +139,21 @@ function Courts() {
             </div>
           </div>
 
-          {/* Campus + Day Selectors */}
-          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-[#f1f5f9]">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-[#475569]">Campus:</span>
+          {/* Campus & Day Selector */}
+          <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-[#f1f3f6]">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#64748b]">
+                Campus:
+              </span>
               <div className="flex gap-1">
                 {["All", ...CAMPUSES].map((c) => (
                   <button
                     key={c}
                     onClick={() => setCampus(c)}
-                    className={`px-2.5 py-1 text-xs font-medium rounded-none border ${
+                    className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider border ${
                       campus === c
-                        ? "bg-[#084d7a] text-white border-[#084d7a]"
-                        : "bg-white text-[#334155] border-[#cbd5e1] hover:bg-[#f8fafc]"
+                        ? "bg-[#0d1b2a] text-white border-[#0d1b2a]"
+                        : "bg-white text-[#475569] border-[#e5e7eb] hover:bg-[#f8f8fa]"
                     }`}
                   >
                     {c}
@@ -152,19 +162,21 @@ function Courts() {
               </div>
             </div>
 
-            <div className="hidden sm:block h-4 w-px bg-[#cbd5e1]" />
+            <div className="hidden sm:block h-4 w-px bg-[#e5e7eb]" />
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-[#475569]">Date:</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#64748b]">
+                Session Date:
+              </span>
               <div className="flex gap-1">
                 {DAYS.map((d, i) => (
                   <button
                     key={d}
                     onClick={() => setDayIdx(i)}
-                    className={`px-2.5 py-1 text-xs font-medium rounded-none border ${
+                    className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider border ${
                       dayIdx === i
-                        ? "bg-[#0080b0] text-white border-[#0080b0]"
-                        : "bg-white text-[#334155] border-[#cbd5e1] hover:bg-[#f8fafc]"
+                        ? "bg-[#e35925] text-white border-[#e35925]"
+                        : "bg-white text-[#475569] border-[#e5e7eb] hover:bg-[#f8f8fa]"
                     }`}
                   >
                     {d}
@@ -176,25 +188,23 @@ function Courts() {
         </div>
 
         {/* Legend */}
-        <div className="mt-4 pt-3 border-t border-[#f1f5f9] flex items-center gap-5 text-xs text-[#64748b]">
+        <div className="mt-4 pt-3 border-t border-[#f1f3f6] flex items-center gap-5 text-xs text-[#64748b]">
           <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 bg-white border border-[#cbd5e1] rounded-none" /> Available
-            Slot
+            <span className="h-3 w-3 bg-white border border-[#e5e7eb]" /> Available Slot
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 bg-[#084d7a] rounded-none" /> Selected Slot
+            <span className="h-3 w-3 bg-[#e35925]" /> Selected Slot
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 bg-[#e2e8f0] border border-[#cbd5e1] rounded-none" /> Booked /
-            Unavailable
+            <span className="h-3 w-3 bg-[#f1f3f6] border border-[#e5e7eb]" /> Booked / Unavailable
           </span>
         </div>
       </div>
 
-      {/* Courts List */}
-      <div className="space-y-4">
+      {/* 3. Facility Cards & Slots Matrix */}
+      <div className="space-y-6">
         {filtered.length === 0 ? (
-          <div className="p-8 text-center bg-white border border-[#cbd5e1] text-sm text-[#64748b] rounded-none">
+          <div className="p-12 text-center bg-white border border-[#e5e7eb] text-xs font-black uppercase tracking-wider text-[#64748b]">
             No courts match the selected filters.
           </div>
         ) : (
@@ -203,40 +213,65 @@ function Courts() {
             return (
               <div
                 key={court.id}
-                className="bg-white border border-[#cbd5e1] p-4 rounded-none shadow-xs"
+                className="bg-white border border-[#e5e7eb] p-5 sm:p-6 shadow-xs hover:border-[#0d1b2a] transition-all"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e2e8f0] pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#f0f3f6] text-[#084d7a] border border-[#dbe2ea] rounded-none">
-                      <SportIcon sport={court.sport} className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h2 className="text-sm font-bold text-[#0f172a]">{court.name}</h2>
-                      <p className="flex items-center gap-1 text-xs text-[#64748b] mt-0.5">
-                        <MapPin className="h-3 w-3 text-[#084d7a]" /> {court.campus} ·{" "}
-                        <span className="font-medium text-[#0f172a]">
-                          {court.indoor ? "Indoor Court" : "Outdoor Field"}
+                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5 border-b border-[#f1f3f6] pb-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="relative h-24 w-32 shrink-0 overflow-hidden bg-slate-100">
+                      <img
+                        src={court.image}
+                        alt={court.name}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute top-1.5 left-1.5 bg-[#0d1b2a] text-white px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider">
+                        {court.indoor ? "INDOOR" : "OUTDOOR"}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="h-6 w-6 grid place-items-center bg-[#0d1b2a] text-white text-xs">
+                          <SportIcon sport={court.sport} className="h-3.5 w-3.5" />
                         </span>
+                        <h2 className="text-lg font-black text-[#111827] uppercase tracking-tight">
+                          {court.name}
+                        </h2>
+                      </div>
+                      <p className="flex items-center gap-1.5 text-xs text-[#64748b] font-medium">
+                        <MapPin className="h-3.5 w-3.5 text-[#0d1b2a]" /> {court.campus} ·{" "}
+                        <span>{court.capacity}</span>
+                      </p>
+                      <p className="text-xs text-[#475569] font-medium pt-1">
+                        Equipment: <span className="text-[#111827]">{court.equipment}</span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="text-[#64748b]">
-                      Student Rate:{" "}
-                      <strong className="text-[#0f172a]">₹{court.pricePerHour}/hr</strong>
-                    </span>
-                    <span className="bg-[#e6f4ea] text-[#137333] border border-[#ceead6] px-2 py-0.5 text-[10px] font-bold uppercase rounded-none">
+                  <div className="flex items-center lg:flex-col lg:items-end justify-between gap-2">
+                    <div className="text-right">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#64748b] block">
+                        STUDENT SUBSIDY RATE
+                      </span>
+                      <span className="text-xl font-black text-[#111827] font-mono">
+                        ₹{court.pricePerHour}
+                        <span className="text-xs text-[#64748b] font-normal"> / hour</span>
+                      </span>
+                    </div>
+                    <span className="bg-[#f4efe9] text-[#e35925] border border-[#f3dfd4] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider">
                       {sportInfo?.name}
                     </span>
                   </div>
                 </div>
 
                 {/* Slots Grid */}
-                <div className="mt-3">
-                  <p className="text-[11px] font-semibold text-[#475569] uppercase tracking-wider mb-2">
-                    Available Time Slots for {DAYS[dayIdx]}:
-                  </p>
+                <div className="mt-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#64748b]">
+                      Select Time Slot ({DAYS[dayIdx]})
+                    </span>
+                    <span className="text-[10px] text-[#64748b] font-mono">60 MIN DURATION</span>
+                  </div>
+
                   <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
                     {SLOT_HOURS.map((h) => {
                       const booked = isSlotBooked(court.id, h, dayIdx);
@@ -246,12 +281,12 @@ function Courts() {
                           key={h}
                           disabled={booked}
                           onClick={() => setSelected(isSel ? null : { court, hour: h })}
-                          className={`py-2 text-[11px] font-semibold tabular-nums rounded-none transition-colors border ${
+                          className={`py-2 text-[11px] font-black tabular-nums transition-colors border ${
                             isSel
-                              ? "bg-[#084d7a] text-white border-[#084d7a]"
+                              ? "bg-[#e35925] text-white border-[#e35925]"
                               : booked
-                                ? "bg-[#f1f5f9] text-[#94a3b8] border-[#e2e8f0] line-through cursor-not-allowed"
-                                : "bg-white text-[#084d7a] border-[#cbd5e1] hover:bg-[#e6f4fb] hover:border-[#0080b0]"
+                                ? "bg-[#f1f3f6] text-[#94a3b8] border-[#e5e7eb] line-through cursor-not-allowed"
+                                : "bg-white text-[#111827] border-[#e5e7eb] hover:border-[#0d1b2a] hover:bg-[#fafafc]"
                           }`}
                         >
                           {h % 12 === 0 ? 12 : h % 12} {h < 12 ? "AM" : "PM"}
@@ -263,15 +298,17 @@ function Courts() {
 
                 {/* Booking confirmation panel */}
                 {selected?.court.id === court.id && (
-                  <div className="mt-4 p-4 border border-[#0080b0] bg-[#f0f8fc] rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in-50 duration-150">
+                  <div className="mt-5 p-5 bg-[#fafafc] border border-[#0d1b2a] border-l-4 border-l-[#e35925] flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in-50 duration-150">
                     <div>
-                      <p className="text-xs font-bold text-[#084d7a]">
-                        Selected Slot: {DAYS[dayIdx]} · {formatHour(selected.hour)} –{" "}
-                        {formatHour(selected.hour + 1)}
+                      <span className="text-[9px] font-black uppercase tracking-widest text-[#e35925] block">
+                        RESERVATION SUMMARY
+                      </span>
+                      <p className="text-sm font-black text-[#111827] uppercase tracking-tight">
+                        {selected.court.name} · {DAYS[dayIdx]} ({formatHour(selected.hour)} –{" "}
+                        {formatHour(selected.hour + 1)})
                       </p>
-                      <p className="text-[11px] text-[#475569] mt-0.5">
-                        Court: {selected.court.name} ({selected.court.campus}) · Fee: ₹
-                        {selected.court.pricePerHour}
+                      <p className="text-xs text-[#64748b] mt-0.5">
+                        Campus: {selected.court.campus} · Rate: ₹{selected.court.pricePerHour}
                       </p>
                     </div>
 
@@ -279,17 +316,17 @@ function Courts() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="rounded-none text-xs"
+                        className="text-xs font-black uppercase"
                         onClick={() => setSelected(null)}
                       >
                         Cancel
                       </Button>
                       <Button
                         size="sm"
-                        className="rounded-none bg-[#0080b0] hover:bg-[#006f9c] text-white text-xs font-semibold px-4"
+                        className="bg-[#e35925] hover:bg-[#cf4d1c] text-white text-xs font-black uppercase tracking-wider px-5"
                         onClick={confirmBooking}
                       >
-                        Confirm Booking
+                        Confirm Pass
                       </Button>
                     </div>
                   </div>
@@ -300,37 +337,43 @@ function Courts() {
         )}
       </div>
 
-      {/* Shared MyBookings (required by user rule in AGENTS.md) */}
+      {/* 4. Athlete Activity (Preserving shared MyBookings) */}
       <MyBookings />
 
-      {/* Confirmation Modal */}
+      {/* 5. Confirmation Modal */}
       {confirmedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="booking-confirmed-title"
-            className="w-full max-w-md bg-white border border-[#cbd5e1] p-6 text-center shadow-xl rounded-none animate-in fade-in-50 duration-150"
+            className="w-full max-w-md bg-white border-2 border-[#0d1b2a] p-6 text-center shadow-2xl animate-in fade-in-50 duration-150"
           >
-            <div className="mx-auto flex h-12 w-12 items-center justify-center bg-[#e6f4ea] text-[#137333] border border-[#ceead6] rounded-none">
-              <Check className="h-6 w-6" />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center bg-[#0d1b2a] text-white border-l-4 border-[#e35925]">
+              <Check className="h-7 w-7 text-[#e35925]" />
             </div>
-            <h2 id="booking-confirmed-title" className="mt-3 text-lg font-bold text-[#084d7a]">
-              Court Slot Confirmed
+            <span className="mt-3 block text-[10px] font-black uppercase tracking-widest text-[#e35925]">
+              PASS ISSUED
+            </span>
+            <h2
+              id="booking-confirmed-title"
+              className="text-xl font-black text-[#111827] uppercase tracking-tight"
+            >
+              Facility Slot Reserved
             </h2>
             <p className="mt-1 text-xs text-[#64748b]">
-              Your PESU facility reservation slip has been generated.
+              Your student RFID pass is active for the court turnstile entry.
             </p>
 
-            <div className="mt-4 border border-[#e2e8f0]">
+            <div className="mt-5 border border-[#e5e7eb]">
               <BookingDetails booking={confirmedBooking} />
             </div>
 
             <Button
-              className="mt-5 w-full rounded-none bg-[#0080b0] hover:bg-[#006f9c] text-white text-xs font-semibold py-2.5"
+              className="mt-5 w-full bg-[#0d1b2a] hover:bg-[#1c2d42] text-white text-xs font-black uppercase tracking-wider py-3"
               onClick={() => setConfirmed(null)}
             >
-              Done
+              Done & View Activity
             </Button>
           </div>
         </div>
