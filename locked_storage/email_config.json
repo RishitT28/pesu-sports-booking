@@ -1,0 +1,17 @@
+{
+  "adminEmail": "sportsdesk@pesu.pes.edu",
+  "senderName": "PES University Sports Clearance Office",
+  "smtpHost": "smtp.gmail.com",
+  "smtpPort": 587,
+  "secure": false,
+  "auth": {
+    "user": "sportsdesk@pesu.pes.edu",
+    "pass": ""
+  },
+  "triggers": {
+    "bookingReminder": true,
+    "slotFreed": true,
+    "queueCleared": true
+  },
+  "lastUpdated": "2026-10-09T18:30:00.000Z"
+}

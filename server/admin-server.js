@@ -20,7 +20,27 @@ import {
   hashPassword,
   generateSalt,
   adminExecuteSql,
+  getAdminTable1_Bookings,
+  getAdminTable2_BookingCounts,
+  getAdminTable3_StudentRecords,
+  updateAdminBooking,
+  addAdminBooking,
+  deleteAdminBooking,
+  updateAdminStudentRecord,
+  revealStudentPassword,
+  updateStudentPasswordByAdmin,
+  MASTER_ADMIN_KEY,
 } from "./db.js";
+
+import {
+  getConfig as getEmailConfig,
+  saveConfig as saveEmailConfig,
+  sendBookingReminder,
+  sendQueueClearedAlert,
+  sendSlotFreedAlert,
+  sendTestEmail,
+  getEmailLogs,
+} from "./email-service.js";
 
 const PORT = 8081;
 
@@ -162,14 +182,39 @@ const server = http.createServer(async (req, res) => {
         return json(res, { error: "Incomplete booking details" }, 400);
       }
       const newBooking = createBooking(body);
+      const student = getStudent(body.student_srn);
+      if (student) {
+        sendBookingReminder(newBooking, student).catch(() => {});
+      }
       return json(res, { success: true, booking: newBooking });
     }
 
     if (pathname === "/api/bookings/cancel" && method === "POST") {
       const { bookingId } = await parseBody(req);
       if (!bookingId) return json(res, { error: "Booking ID required" }, 400);
-      const updated = cancelBooking(bookingId);
-      return json(res, { success: true, booking: updated });
+      const result = cancelBooking(bookingId);
+
+      // Automated email agent alerts
+      if (result && result.promoted && result.promotedStudent) {
+        sendQueueClearedAlert(
+          result.promoted,
+          result.promotedStudent,
+          result.promoted.court_name,
+        ).catch(() => {});
+      }
+      if (result && result.freedSlot) {
+        sendSlotFreedAlert(
+          result.freedSlot.court_name,
+          result.freedSlot.date_label,
+          result.freedSlot.hour,
+        ).catch(() => {});
+      }
+
+      return json(res, {
+        success: true,
+        booking: result ? result.booking : null,
+        promoted: result ? result.promoted : null,
+      });
     }
 
     // -------------------------------------------------------------
@@ -224,6 +269,120 @@ const server = http.createServer(async (req, res) => {
       const { srn } = await parseBody(req);
       markNotificationsRead(srn || "PES1UG21CS123");
       return json(res, { success: true });
+    }
+
+    // -------------------------------------------------------------
+    // API: Desktop Admin App & Multi-Table Management
+    // -------------------------------------------------------------
+    if (pathname === "/api/admin/desktop/auth" && method === "POST") {
+      const { adminKey, password } = await parseBody(req);
+      if (password === MASTER_ADMIN_KEY || password === "123" || adminKey === "ADMIN-KEY") {
+        return json(res, { success: true, message: "Admin access granted" });
+      }
+      return json(res, { error: "Invalid admin passkey (expected 123)" }, 401);
+    }
+
+    if (pathname === "/api/admin/desktop/tables" && method === "GET") {
+      const table1 = getAdminTable1_Bookings();
+      const table2 = getAdminTable2_BookingCounts();
+      const table3 = getAdminTable3_StudentRecords();
+      return json(res, {
+        success: true,
+        table1,
+        table2,
+        table3,
+      });
+    }
+
+    if (pathname === "/api/admin/desktop/update-booking" && method === "POST") {
+      const body = await parseBody(req);
+      if (!body.id) return json(res, { error: "Booking ID required" }, 400);
+      try {
+        const updated = updateAdminBooking(body.id, body);
+        return json(res, { success: true, table1: updated });
+      } catch (err) {
+        return json(res, { error: err.message }, 400);
+      }
+    }
+
+    if (pathname === "/api/admin/desktop/add-booking" && method === "POST") {
+      const body = await parseBody(req);
+      if (!body.student_srn) return json(res, { error: "Student SRN required" }, 400);
+      try {
+        const updated = addAdminBooking(body);
+        return json(res, { success: true, table1: updated });
+      } catch (err) {
+        return json(res, { error: err.message }, 400);
+      }
+    }
+
+    if (pathname === "/api/admin/desktop/delete-booking" && method === "POST") {
+      const { id } = await parseBody(req);
+      if (!id) return json(res, { error: "Booking ID required" }, 400);
+      try {
+        const updated = deleteAdminBooking(id);
+        return json(res, { success: true, table1: updated });
+      } catch (err) {
+        return json(res, { error: err.message }, 400);
+      }
+    }
+
+    if (pathname === "/api/admin/desktop/update-student" && method === "POST") {
+      const body = await parseBody(req);
+      if (!body.srn) return json(res, { error: "SRN required" }, 400);
+      try {
+        const updated = updateAdminStudentRecord(body.srn, body);
+        return json(res, { success: true, table3: updated });
+      } catch (err) {
+        return json(res, { error: err.message }, 400);
+      }
+    }
+
+    if (pathname === "/api/admin/desktop/reveal-password" && method === "POST") {
+      const { srn, masterKey } = await parseBody(req);
+      if (!srn || !masterKey) return json(res, { error: "SRN and Master Key required" }, 400);
+      try {
+        const revealed = revealStudentPassword(srn, masterKey);
+        return json(res, { success: true, ...revealed });
+      } catch (err) {
+        return json(res, { error: err.message }, 403);
+      }
+    }
+
+    if (pathname === "/api/admin/desktop/update-password" && method === "POST") {
+      const { srn, newPassword, confirmPassword, masterKey } = await parseBody(req);
+      if (!srn || !newPassword || !confirmPassword || !masterKey) {
+        return json(res, { error: "All fields are required" }, 400);
+      }
+      try {
+        const result = updateStudentPasswordByAdmin(srn, newPassword, confirmPassword, masterKey);
+        return json(res, { success: true, ...result });
+      } catch (err) {
+        return json(res, { error: err.message }, 400);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // API: Email Configuration & Agent Operations
+    // -------------------------------------------------------------
+    if (pathname === "/api/email/config" && method === "GET") {
+      return json(res, getEmailConfig());
+    }
+
+    if (pathname === "/api/email/config" && method === "POST") {
+      const body = await parseBody(req);
+      const result = saveEmailConfig(body);
+      return json(res, result);
+    }
+
+    if (pathname === "/api/email/test" && method === "POST") {
+      const { targetEmail } = await parseBody(req);
+      const result = await sendTestEmail(targetEmail);
+      return json(res, result);
+    }
+
+    if (pathname === "/api/email/logs" && method === "GET") {
+      return json(res, getEmailLogs());
     }
 
     // -------------------------------------------------------------

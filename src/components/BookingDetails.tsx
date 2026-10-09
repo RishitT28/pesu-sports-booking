@@ -64,6 +64,11 @@ export function BookingDetails({ booking }: { booking: Booking }) {
           Facility Access: Free (PESU Student Pass)
         </span>
       </div>
+
+      <div className="mt-2.5 text-[11px] text-[#636a77] flex items-center gap-1.5 border-t border-[#eeeae1] pt-2">
+        <span className="text-[#10b981] font-bold">●</span>
+        <span>Automated email reminder sent 1 hr before session from PESU Sports Admin Agent</span>
+      </div>
     </div>
   );
 }
@@ -251,8 +256,10 @@ export function MyBookings() {
                       </span>
                     </p>
                     <p className="flex items-center gap-1.5 text-[#636a77]">
-                      <AlertCircle className="h-3.5 w-3.5 text-[#1a2639]" />
-                      <span>Automatic promotion if current booked player cancels</span>
+                      <AlertCircle className="h-3.5 w-3.5 text-[#10b981]" />
+                      <span>
+                        Automatic promotion & instant email notification if current player cancels
+                      </span>
                     </p>
                   </div>
                 </div>

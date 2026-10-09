@@ -80,6 +80,7 @@ type AppState = {
     department?: string;
     password: string;
   }) => Promise<{ success: boolean; error?: string }>;
+  adminEmailAgent: string;
   logout: () => void;
   updateProfile: (updates: Partial<StudentUser>) => Promise<{ success: boolean; error?: string }>;
   changePassword: (
@@ -147,18 +148,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [queueRequests, setQueueRequests] = useState<QueueRequest[]>(SEED_QUEUES);
   const [matches, setMatches] = useState<Match[]>(INITIAL_MATCHES);
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
+  const [adminEmailAgent, setAdminEmailAgent] = useState("sportsdesk@pesu.pes.edu");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Sync with backend API on mount
   useEffect(() => {
     async function syncBackend() {
       try {
-        const [bookingsRes, queueRes, matchesRes, notifRes] = await Promise.allSettled([
-          fetch("/api/bookings?srn=" + currentUser.srn).then((r) => r.json()),
-          fetch("/api/queue?srn=" + currentUser.srn).then((r) => r.json()),
-          fetch("/api/matches").then((r) => r.json()),
-          fetch("/api/notifications?srn=" + currentUser.srn).then((r) => r.json()),
-        ]);
+        const [bookingsRes, queueRes, matchesRes, notifRes, emailCfgRes] = await Promise.allSettled(
+          [
+            fetch("/api/bookings?srn=" + currentUser.srn).then((r) => r.json()),
+            fetch("/api/queue?srn=" + currentUser.srn).then((r) => r.json()),
+            fetch("/api/matches").then((r) => r.json()),
+            fetch("/api/notifications?srn=" + currentUser.srn).then((r) => r.json()),
+            fetch("/api/email/config").then((r) => r.json()),
+          ],
+        );
+
+        if (emailCfgRes.status === "fulfilled" && emailCfgRes.value?.adminEmail) {
+          setAdminEmailAgent(emailCfgRes.value.adminEmail);
+        }
 
         if (bookingsRes.status === "fulfilled" && Array.isArray(bookingsRes.value)) {
           setBookings(
@@ -235,6 +244,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       currentUser,
       isLoggedIn,
+      adminEmailAgent,
       login: async (srnOrPrn, password) => {
         try {
           const res = await fetch("/api/auth/login", {
@@ -603,7 +613,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }).catch(() => {});
       },
     }),
-    [currentUser, isLoggedIn, bookings, queueRequests, matches, notifications, sidebarOpen],
+    [
+      currentUser,
+      isLoggedIn,
+      adminEmailAgent,
+      bookings,
+      queueRequests,
+      matches,
+      notifications,
+      sidebarOpen,
+    ],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

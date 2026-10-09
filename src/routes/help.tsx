@@ -62,6 +62,10 @@ const FAQS = [
     a: "Yes. Go to 'My Activity' and click 'Cancel Pass' on your upcoming reservation. Please cancel at least 30 minutes in advance so students on the standby queue can be filled in.",
   },
   {
+    q: "Will I receive email notifications for my bookings and waitlist promotions?",
+    a: "Yes. The PESU Athletics server email sending agent automatically dispatches booking confirmations, proximity reminders 1 hour prior to play, and instant notifications whenever a waitlisted court slot CLEARS UP and your spot is confirmed.",
+  },
+  {
     q: "How do open matches and squad finder work?",
     a: "Any verified student can post a practice run or 3v3 / doubles squad. Other students can join until the roster limit is reached. An integrated coordination chat allows squads to align on warmup times and gear.",
   },

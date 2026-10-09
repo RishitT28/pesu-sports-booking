@@ -61,6 +61,7 @@ function ProfilePage() {
     hoursLogged,
     matchesPlayed,
     bookings,
+    adminEmailAgent,
   } = useApp();
 
   const activeBookings = bookings.filter((b) => b.status === "upcoming").length;
@@ -268,6 +269,19 @@ function ProfilePage() {
           >
             <HelpCircle className="h-3.5 w-3.5" /> Contact Physical Education Directorate Desk
           </a>
+        </div>
+
+        {/* Automated Email Agent Status */}
+        <div className="mt-3 pt-3 border-t border-[#eeeae1] flex flex-wrap items-center justify-between gap-2 text-xs text-[#636a77]">
+          <div className="flex items-center gap-1.5">
+            <Mail className="h-3.5 w-3.5 text-[#1a2639]" />
+            <span>
+              Server Email Agent: <strong className="text-[#1a2639]">{adminEmailAgent}</strong>
+            </span>
+          </div>
+          <span className="text-[11px] text-[#10b981] font-semibold bg-[#f6ffed] border border-[#b7eb8f] px-2 py-0.5 rounded">
+            ● Booking Reminders & Queue Cleared Alerts Active
+          </span>
         </div>
       </div>
 
