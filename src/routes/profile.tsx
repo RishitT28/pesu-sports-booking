@@ -8,12 +8,14 @@ import {
   HelpCircle,
   IdCard,
   KeyRound,
+  Lock,
   LogOut,
   Mail,
   MapPin,
   Phone,
   QrCode,
   Shield,
+  ShieldCheck,
   Sparkles,
   Swords,
   Trophy,
@@ -34,13 +36,13 @@ export const Route = createFileRoute("/profile")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "PESU Sports — Athlete Profile & Clearance" },
+      { title: "BookQuick — Athlete Profile & Clearance" },
       {
         name: "description",
         content:
           "Official student athlete identity, sports clearance RFID pass, account details, and court booking history.",
       },
-      { property: "og:title", content: "PESU Sports — Athlete Profile & Clearance" },
+      { property: "og:title", content: "BookQuick — Athlete Profile & Clearance" },
       {
         property: "og:description",
         content:
@@ -55,13 +57,13 @@ function ProfilePage() {
   const navigate = useNavigate();
   const {
     currentUser,
+    college,
     updateProfile,
     changePassword,
     logout,
     hoursLogged,
     matchesPlayed,
     bookings,
-    adminEmailAgent,
   } = useApp();
 
   const activeBookings = bookings.filter((b) => b.status === "upcoming").length;
@@ -69,7 +71,7 @@ function ProfilePage() {
   // Edit Info Modal
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFullName, setEditFullName] = useState(currentUser.fullName);
-  const [editCampus, setEditCampus] = useState<Campus>(currentUser.campus);
+  const [editCampus, setEditCampus] = useState<string>(currentUser.campus);
   const [editDept, setEditDept] = useState(currentUser.department);
   const [editEmail, setEditEmail] = useState(currentUser.email);
   const [editPhone, setEditPhone] = useState(currentUser.phone);
@@ -143,11 +145,28 @@ function ProfilePage() {
   return (
     <main className="p-4 sm:p-8 space-y-10 max-w-7xl mx-auto font-serif">
       {/* 1. Athlete Identity Card with Edit & Logout Options */}
-      <div className="bg-white border border-[#ded9cd] border-l-4 border-l-[#1a2639] p-6 sm:p-8 shadow-xs">
+      <div
+        className={`bg-white border p-6 sm:p-8 shadow-xs ${college.buttonStyle.radiusClass}`}
+        style={{
+          borderColor: college.colors.border,
+          borderLeftWidth: "4px",
+          borderLeftColor: college.colors.primary,
+        }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 border-b border-[#eeeae1] pb-4">
           <div>
-            <span className="text-xs font-semibold text-[#c45524]">Student Identification</span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#1a2639] mt-0.5">
+            <div className="flex items-center gap-2">
+              <span
+                className="text-xs font-semibold"
+                style={{ color: college.colors.accent || college.colors.primary }}
+              >
+                {college.shortName} Student Identification
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                <Lock className="h-2.5 w-2.5" /> Institution Locked
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold mt-0.5" style={{ color: college.colors.primary }}>
               Athlete Profile & Clearance
             </h1>
           </div>
@@ -157,25 +176,25 @@ function ProfilePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowEditModal(true)}
-              className="text-xs border-[#ded9cd] text-[#1a2639] hover:bg-[#f5f4ef] flex items-center gap-1.5"
+              className={`text-xs border-[#ded9cd] text-[#1a2639] hover:bg-[#f5f4ef] flex items-center gap-1.5 ${college.buttonStyle.radiusClass}`}
             >
-              <Edit3 className="h-3.5 w-3.5 text-[#c45524]" /> Edit Information
+              <Edit3 className="h-3.5 w-3.5" style={{ color: college.colors.accent || college.colors.primary }} /> Edit Information
             </Button>
 
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowPasswordModal(true)}
-              className="text-xs border-[#ded9cd] text-[#1a2639] hover:bg-[#f5f4ef] flex items-center gap-1.5"
+              className={`text-xs border-[#ded9cd] text-[#1a2639] hover:bg-[#f5f4ef] flex items-center gap-1.5 ${college.buttonStyle.radiusClass}`}
             >
-              <KeyRound className="h-3.5 w-3.5 text-[#1a2639]" /> Change Password
+              <KeyRound className="h-3.5 w-3.5" style={{ color: college.colors.primary }} /> Change Password
             </Button>
 
             <Button
               variant="destructive"
               size="sm"
               onClick={handleLogout}
-              className="text-xs bg-[#b94236] hover:bg-[#a3372c] text-white flex items-center gap-1.5"
+              className={`text-xs bg-[#b94236] hover:bg-[#a3372c] text-white flex items-center gap-1.5 ${college.buttonStyle.radiusClass}`}
             >
               <LogOut className="h-3.5 w-3.5" /> Sign Out
             </Button>
@@ -186,28 +205,51 @@ function ProfilePage() {
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Personal & Academic Specs */}
           <div className="lg:col-span-2 flex flex-col sm:flex-row items-start gap-6">
-            <div className="h-20 w-20 shrink-0 bg-[#1a2639] text-white flex items-center justify-center text-3xl font-bold border-2 border-[#c45524]">
+            <div
+              className={`h-20 w-20 shrink-0 text-white flex items-center justify-center text-3xl font-bold border-2 ${college.buttonStyle.radiusClass}`}
+              style={{
+                backgroundColor: college.colors.primary,
+                borderColor: college.colors.accent || college.colors.primary,
+              }}
+            >
               {currentUser.name[0] || "R"}
             </div>
 
             <div className="min-w-0 flex-1 space-y-2">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h2 className="text-xl font-bold text-[#1a2639]">{currentUser.fullName}</h2>
-                <span className="text-xs font-semibold bg-[#1a2639] text-white px-2 py-0.5">
+                <span
+                  className={`text-xs font-semibold text-white px-2 py-0.5 ${college.buttonStyle.radiusClass}`}
+                  style={{ backgroundColor: college.colors.primary }}
+                >
                   {currentUser.semester}
                 </span>
-                <span className="text-xs font-medium bg-[#fdf3ee] text-[#c45524] border border-[#f5dbcf] px-2 py-0.5">
+                <span
+                  className={`text-xs font-medium border px-2 py-0.5 ${college.buttonStyle.radiusClass}`}
+                  style={{
+                    backgroundColor: "#fdf3ee",
+                    color: college.colors.primary,
+                    borderColor: college.colors.border,
+                  }}
+                >
                   {currentUser.skill} Competitor
                 </span>
-                <span className="text-xs font-medium bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0] px-2 py-0.5">
-                  Clearance: {currentUser.clearanceStatus}
-                </span>
+                {currentUser.srn.toLowerCase() === "admin123" || currentUser.clearanceStatus.includes("Superuser") ? (
+                  <span className={`text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 flex items-center gap-1 ${college.buttonStyle.radiusClass}`}>
+                    <Sparkles className="h-3 w-3 text-amber-600 fill-current" />
+                    <span>Superuser Clearance · Directorate Access</span>
+                  </span>
+                ) : (
+                  <span className={`text-xs font-medium bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0] px-2 py-0.5 ${college.buttonStyle.radiusClass}`}>
+                    Clearance: {currentUser.clearanceStatus}
+                  </span>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4 text-xs text-[#4b5260] pt-1">
                 <div>
                   <span className="text-[#8c94a0] text-[11px] font-semibold block">
-                    Student Registration Number (SRN)
+                    {college.studentIdLabel}
                   </span>
                   <span className="font-mono text-[#1a2639] font-medium">{currentUser.srn}</span>
                 </div>
@@ -271,16 +313,16 @@ function ProfilePage() {
           </a>
         </div>
 
-        {/* Automated Email Agent Status */}
+        {/* University Athletic Affiliation Status */}
         <div className="mt-3 pt-3 border-t border-[#eeeae1] flex flex-wrap items-center justify-between gap-2 text-xs text-[#636a77]">
           <div className="flex items-center gap-1.5">
-            <Mail className="h-3.5 w-3.5 text-[#1a2639]" />
+            <ShieldCheck className="h-3.5 w-3.5 text-[#10b981]" />
             <span>
-              Server Email Agent: <strong className="text-[#1a2639]">{adminEmailAgent}</strong>
+              Institution: <strong className="text-gray-900">{college.name}</strong> ({currentUser.campus})
             </span>
           </div>
           <span className="text-[11px] text-[#10b981] font-semibold bg-[#f6ffed] border border-[#b7eb8f] px-2 py-0.5 rounded">
-            ● Booking Reminders & Queue Cleared Alerts Active
+            ● Direct Turnstile Clearance & Live Booking Verified
           </span>
         </div>
       </div>
@@ -308,20 +350,21 @@ function ProfilePage() {
           },
           {
             icon: Zap,
-            label: "PESU Power Rating",
+            label: `${college.shortName} Power Rating`,
             value: "4.2 / 5.0",
-            sub: "Top 12% in CSE",
+            sub: "Top 12% in Athletics",
           },
         ].map(({ icon: Icon, label, value, sub }) => (
           <div
             key={label}
-            className="bg-white border border-[#ded9cd] p-6 shadow-xs transition-colors hover:border-[#1a2639]"
+            className={`bg-white border p-6 shadow-xs transition-colors hover:border-[#1a2639] ${college.buttonStyle.radiusClass}`}
+            style={{ borderColor: college.colors.border }}
           >
             <div className="flex items-center justify-between">
-              <Icon className="h-5 w-5 text-[#c45524]" />
+              <Icon className="h-5 w-5" style={{ color: college.colors.accent || college.colors.primary }} />
               <span className="text-[11px] font-medium text-[#8c94a0]">{sub}</span>
             </div>
-            <p className="mt-3 text-2xl font-bold text-[#1a2639]">{value}</p>
+            <p className="mt-3 text-2xl font-bold" style={{ color: college.colors.primary }}>{value}</p>
             <p className="text-xs text-[#636a77] mt-1">{label}</p>
           </div>
         ))}
@@ -451,13 +494,22 @@ function ProfilePage() {
           onClick={() => setShowEditModal(false)}
         >
           <div
-            className="w-full max-w-lg bg-white border border-[#ded9cd] border-t-4 border-t-[#c45524] shadow-2xl p-6 sm:p-8 animate-in fade-in"
+            className={`w-full max-w-lg bg-white border shadow-2xl p-6 sm:p-8 animate-in fade-in ${college.buttonStyle.radiusClass}`}
+            style={{
+              borderColor: college.colors.border,
+              borderTopWidth: "4px",
+              borderTopColor: college.colors.primary,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#eeeae1] pb-3 mb-4">
               <div>
-                <span className="text-xs font-semibold text-[#c45524]">Account Settings</span>
-                <h3 className="text-lg font-bold text-[#1a2639]">Edit Student Information</h3>
+                <span className="text-xs font-semibold" style={{ color: college.colors.accent || college.colors.primary }}>
+                  Account Settings
+                </span>
+                <h3 className="text-lg font-bold" style={{ color: college.colors.primary }}>
+                  Edit Student Information
+                </h3>
               </div>
               <button
                 onClick={() => setShowEditModal(false)}
@@ -475,7 +527,7 @@ function ProfilePage() {
                   required
                   value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                  className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                 />
               </div>
 
@@ -486,10 +538,10 @@ function ProfilePage() {
                   </label>
                   <select
                     value={editCampus}
-                    onChange={(e) => setEditCampus(e.target.value as Campus)}
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    onChange={(e) => setEditCampus(e.target.value)}
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   >
-                    {CAMPUSES.map((c) => (
+                    {college.campuses.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -504,7 +556,7 @@ function ProfilePage() {
                   <select
                     value={editSkill}
                     onChange={(e) => setEditSkill(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -520,7 +572,7 @@ function ProfilePage() {
                   required
                   value={editDept}
                   onChange={(e) => setEditDept(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                  className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                 />
               </div>
 
@@ -534,7 +586,7 @@ function ProfilePage() {
                     required
                     value={editEmail}
                     onChange={(e) => setEditEmail(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   />
                 </div>
 
@@ -547,7 +599,7 @@ function ProfilePage() {
                     required
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   />
                 </div>
               </div>
@@ -564,11 +616,19 @@ function ProfilePage() {
                         type="button"
                         key={s.id}
                         onClick={() => toggleSport(s.id)}
-                        className={`px-3 py-1 text-xs border transition-colors ${
+                        className={`px-3 py-1 text-xs border transition-colors ${college.buttonStyle.radiusClass} ${
                           active
-                            ? "bg-[#1a2639] text-white border-[#1a2639] font-medium"
+                            ? "text-white font-medium"
                             : "bg-[#f5f4ef] text-[#4b5260] border-[#ded9cd] hover:bg-white"
                         }`}
+                        style={
+                          active
+                            ? {
+                                backgroundColor: college.colors.primary,
+                                borderColor: college.colors.primary,
+                              }
+                            : undefined
+                        }
                       >
                         {s.name}
                       </button>
@@ -587,7 +647,8 @@ function ProfilePage() {
                 </button>
                 <Button
                   type="submit"
-                  className="bg-[#c45524] hover:bg-[#b04a1d] text-white text-xs font-semibold px-5 py-2"
+                  className={`text-white text-xs font-semibold px-5 py-2 transition-all ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass} ${college.buttonStyle.extraClass}`}
+                  style={{ backgroundColor: college.colors.primary }}
                 >
                   Save Information
                 </Button>
@@ -604,13 +665,20 @@ function ProfilePage() {
           onClick={() => setShowPasswordModal(false)}
         >
           <div
-            className="w-full max-w-md bg-white border border-[#ded9cd] border-t-4 border-t-[#1a2639] shadow-2xl p-6 sm:p-8 animate-in fade-in"
+            className={`w-full max-w-md bg-white border shadow-2xl p-6 sm:p-8 animate-in fade-in ${college.buttonStyle.radiusClass}`}
+            style={{
+              borderColor: college.colors.border,
+              borderTopWidth: "4px",
+              borderTopColor: college.colors.primary,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#eeeae1] pb-3 mb-4">
               <div>
-                <span className="text-xs font-semibold text-[#c45524]">Encrypted Security</span>
-                <h3 className="text-lg font-bold text-[#1a2639]">Change Password</h3>
+                <span className="text-xs font-semibold" style={{ color: college.colors.accent || college.colors.primary }}>
+                  Encrypted Security
+                </span>
+                <h3 className="text-lg font-bold" style={{ color: college.colors.primary }}>Change Password</h3>
               </div>
               <button
                 onClick={() => setShowPasswordModal(false)}
@@ -631,7 +699,7 @@ function ProfilePage() {
                   placeholder="Enter current password"
                   value={currPassword}
                   onChange={(e) => setCurrPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                  className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                 />
               </div>
 
@@ -645,7 +713,7 @@ function ProfilePage() {
                   placeholder="Enter new secure password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                  className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                 />
               </div>
 
@@ -659,7 +727,7 @@ function ProfilePage() {
                   placeholder="Re-enter new secure password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                  className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                 />
               </div>
 
@@ -685,7 +753,8 @@ function ProfilePage() {
                 </button>
                 <Button
                   type="submit"
-                  className="bg-[#1a2639] hover:bg-[#25364e] text-white text-xs font-semibold px-5 py-2"
+                  className={`text-white text-xs font-semibold px-5 py-2 transition-all ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass} ${college.buttonStyle.extraClass}`}
+                  style={{ backgroundColor: college.colors.primary }}
                 >
                   Update Password
                 </Button>

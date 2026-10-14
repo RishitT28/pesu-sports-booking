@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node launcher.js",
     "launcher": "node launcher.js",
-    "admin": "node server/admin-server.js",
+    "server": "node server/index.js",
     "dev": "vite dev --port 8080",
     "build": "vite build",
     "build:dev": "vite build --mode development",

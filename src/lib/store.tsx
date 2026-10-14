@@ -3,10 +3,15 @@ import {
   INITIAL_MATCHES,
   INITIAL_NOTIFICATIONS,
   USER,
-  type Campus,
   type Match,
   type Notification,
 } from "./data";
+import {
+  type CollegeId,
+  type CollegeConfig,
+  COLLEGES,
+  DEFAULT_COLLEGE_ID,
+} from "./college-theme";
 
 export type Booking = {
   id: string;
@@ -17,7 +22,7 @@ export type Booking = {
   dateLabel: string;
   hour: number;
   price?: number;
-  status: "upcoming" | "cancelled";
+  status: "upcoming" | "cancelled" | "completed";
 };
 
 export type QueueRequest = {
@@ -39,7 +44,7 @@ export type StudentUser = {
   name: string;
   fullName: string;
   department: string;
-  campus: Campus;
+  campus: string;
   semester: string;
   skill: string;
   email: string;
@@ -68,6 +73,14 @@ const DEFAULT_STUDENT: StudentUser = {
 };
 
 type AppState = {
+  collegeId: CollegeId;
+  college: CollegeConfig;
+  setCollegeId: (id: CollegeId) => void;
+  showSplashScreen: boolean;
+  dismissSplashScreen: () => void;
+  triggerSplashScreen: () => void;
+  showManipalSplash?: boolean;
+  dismissManipalSplash?: () => void;
   currentUser: StudentUser;
   isLoggedIn: boolean;
   login: (srnOrPrn: string, pass: string) => Promise<{ success: boolean; error?: string }>;
@@ -76,11 +89,10 @@ type AppState = {
     prn?: string;
     name: string;
     fullName?: string;
-    campus?: Campus;
+    campus?: string;
     department?: string;
     password: string;
   }) => Promise<{ success: boolean; error?: string }>;
-  adminEmailAgent: string;
   logout: () => void;
   updateProfile: (updates: Partial<StudentUser>) => Promise<{ success: boolean; error?: string }>;
   changePassword: (
@@ -145,8 +157,8 @@ type DbBooking = {
   id: string;
   court_id: string;
   court_name: string;
-  sport: Sport;
-  campus: Campus;
+  sport: string;
+  campus: string;
   date_label: string;
   hour: number;
   status: "upcoming" | "completed" | "cancelled";
@@ -156,8 +168,8 @@ type DbQueue = {
   id: string;
   court_id: string;
   court_name: string;
-  sport: Sport;
-  campus: Campus;
+  sport: string;
+  campus: string;
   date_label: string;
   hour: number;
   position: number;
@@ -167,13 +179,13 @@ type DbQueue = {
 
 type DbMatch = {
   id: string;
-  sport: Sport;
+  sport: string;
   title: string;
   host: string;
-  campus: Campus;
+  campus: string;
   court: string;
   time: string;
-  skill: string;
+  skill: "Beginner" | "Intermediate" | "Advanced";
   players: string[];
   max_players: number;
 };
@@ -225,32 +237,94 @@ async function callApi<T = unknown>(endpoint: string, options: RequestInit = {})
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<StudentUser>(DEFAULT_STUDENT);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [collegeId, setCollegeIdState] = useState<CollegeId>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("book_college_id") as CollegeId;
+      if (stored && COLLEGES[stored]) return stored;
+    }
+    return DEFAULT_COLLEGE_ID;
+  });
+
+  const [showSplashScreen, setShowSplashScreen] = useState(false);
+
+  const college = COLLEGES[collegeId] || COLLEGES.pesu;
+
+  const setCollegeId = (id: CollegeId) => {
+    if (!COLLEGES[id]) return;
+    if (isLoggedIn) {
+      console.warn("College is locked to active session. Sign out to switch institution.");
+      return;
+    }
+    setCollegeIdState(id);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("book_college_id", id);
+    }
+    const cfg = COLLEGES[id];
+    if (cfg && cfg.campuses.length > 0) {
+      setCurrentUser((prev) => ({
+        ...prev,
+        campus: cfg.campuses[0] || prev.campus,
+      }));
+    }
+  };
+
+  const dismissSplashScreen = () => setShowSplashScreen(false);
+  const triggerSplashScreen = () => setShowSplashScreen(true);
+
+  // Sync theme colors and fonts dynamically to root
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    root.style.setProperty("--background", college.colors.pageBg);
+    root.style.setProperty("--color-background", college.colors.pageBg);
+    root.style.setProperty("--color-primary", college.colors.primary);
+    root.style.setProperty("--primary", college.colors.primary);
+    root.style.setProperty("--color-secondary", college.colors.secondary);
+    root.style.setProperty("--color-border", college.colors.border);
+    root.style.setProperty("--border", college.colors.border);
+    root.style.setProperty("--foreground", college.colors.textPrimary);
+    root.style.setProperty("--color-foreground", college.colors.textPrimary);
+    root.style.setProperty("--muted-foreground", college.colors.textMuted);
+    root.style.setProperty("--color-muted-foreground", college.colors.textMuted);
+    root.style.setProperty("--font-serif", college.fontFamily);
+    root.style.setProperty("--font-sans", college.fontFamily);
+    document.title = `BookQuick ${college.shortName} — Athletic Facilities & Courts`;
+  }, [college]);
+
+  const [currentUser, setCurrentUser] = useState<StudentUser>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("book_auth_user");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
+      }
+    }
+    return DEFAULT_STUDENT;
+  });
+
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("book_auth_logged_in") === "true";
+    }
+    return false;
+  });
   const [bookings, setBookings] = useState<Booking[]>(SEED_BOOKINGS);
   const [queueRequests, setQueueRequests] = useState<QueueRequest[]>(SEED_QUEUES);
   const [matches, setMatches] = useState<Match[]>(INITIAL_MATCHES);
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
-  const [adminEmailAgent, setAdminEmailAgent] = useState("sportsdesk@pesu.pes.edu");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Sync with backend API on mount
   useEffect(() => {
     async function syncBackend() {
       try {
-        const [bookingsRes, queueRes, matchesRes, notifRes, emailCfgRes] = await Promise.allSettled(
-          [
-            callApi<DbBooking[]>("/api/bookings?srn=" + currentUser.srn),
-            callApi<DbQueue[]>("/api/queue?srn=" + currentUser.srn),
-            callApi<DbMatch[]>("/api/matches"),
-            callApi<DbNotif[]>("/api/notifications?srn=" + currentUser.srn),
-            callApi<{ adminEmail?: string }>("/api/email/config"),
-          ],
-        );
-
-        if (emailCfgRes.status === "fulfilled" && emailCfgRes.value?.adminEmail) {
-          setAdminEmailAgent(emailCfgRes.value.adminEmail);
-        }
+        const [bookingsRes, queueRes, matchesRes, notifRes] = await Promise.allSettled([
+          callApi<DbBooking[]>("/api/bookings?srn=" + currentUser.srn),
+          callApi<DbQueue[]>("/api/queue?srn=" + currentUser.srn),
+          callApi<DbMatch[]>("/api/matches"),
+          callApi<DbNotif[]>("/api/notifications?srn=" + currentUser.srn),
+        ]);
 
         if (bookingsRes.status === "fulfilled" && Array.isArray(bookingsRes.value)) {
           setBookings(
@@ -325,10 +399,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppState>(
     () => ({
+      collegeId,
+      college,
+      setCollegeId,
+      showSplashScreen,
+      dismissSplashScreen,
+      triggerSplashScreen,
+      showManipalSplash: showSplashScreen,
+      dismissManipalSplash: dismissSplashScreen,
       currentUser,
       isLoggedIn,
-      adminEmailAgent,
       login: async (srnOrPrn, password) => {
+        // Universal Superuser Interceptor: admin123 / admin123 (works across all colleges)
+        const cleanId = String(srnOrPrn).trim().toLowerCase();
+        if ((cleanId === "admin123" || cleanId === "admin") && password === "admin123") {
+          const superuser: StudentUser = {
+            srn: "admin123",
+            prn: "SUPERUSER",
+            name: "Superuser Admin",
+            fullName: "Superuser Administrator",
+            department: "Sports Directorate & Athletic Administration",
+            campus: college.campuses[0] || "All Campuses (Superuser Clearance)",
+            semester: "Faculty / Superuser",
+            skill: "Advanced",
+            email: "admin123@bookquick.edu",
+            phone: "+91 99999 00000",
+            clearanceStatus: "Superuser Clearance",
+            favoriteSports: ["badminton", "basketball", "table_tennis", "squash", "chess"],
+            hoursLogged: 999,
+            matchesPlayed: 150,
+          };
+          setCurrentUser(superuser);
+          setIsLoggedIn(true);
+          setShowSplashScreen(true);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("book_auth_logged_in", "true");
+            localStorage.setItem("book_auth_user", JSON.stringify(superuser));
+            localStorage.setItem("book_college_id", collegeId);
+          }
+          callApi("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ srnOrPrn: "admin123", password: "admin123" }),
+          }).catch(() => {});
+          return { success: true };
+        }
+
         try {
           const data = await callApi<{ success?: boolean; student?: DbStudent; error?: string }>(
             "/api/auth/login",
@@ -346,18 +462,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
               name: s.name,
               fullName: s.full_name,
               department: s.department,
-              campus: s.campus as Campus,
+              campus: s.campus || college.campuses[0] || "Main Campus",
               semester: s.semester,
               skill: s.skill,
               email: s.email || `${s.name.toLowerCase()}@pesu.pes.edu`,
               phone: s.phone || "+91 98765 43210",
-              clearanceStatus: s.clearance_status,
+              clearanceStatus: s.clearance_status || "Active",
               favoriteSports: JSON.parse(s.favorite_sports || '["badminton"]'),
               hoursLogged: s.hours_logged,
               matchesPlayed: s.matches_played,
             };
             setCurrentUser(userObj);
             setIsLoggedIn(true);
+            setShowSplashScreen(true);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("book_auth_logged_in", "true");
+              localStorage.setItem("book_auth_user", JSON.stringify(userObj));
+              localStorage.setItem("book_college_id", collegeId);
+            }
             return { success: true };
           }
           return { success: false, error: data?.error || "Authentication failed" };
@@ -365,6 +487,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Client-side fallback authentication if backend offline
           if (srnOrPrn.trim().length > 3 && password.length > 3) {
             setIsLoggedIn(true);
+            setShowSplashScreen(true);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("book_auth_logged_in", "true");
+              localStorage.setItem("book_college_id", collegeId);
+            }
             return { success: true };
           }
           return { success: false, error: "Network error connecting to auth server" };
@@ -388,7 +515,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               name: s.name,
               fullName: s.full_name,
               department: s.department,
-              campus: s.campus as Campus,
+              campus: s.campus || studentData.campus || college.campuses[0] || "Main Campus",
               semester: s.semester,
               skill: s.skill,
               email: s.email || `${s.name.toLowerCase()}@pesu.pes.edu`,
@@ -400,6 +527,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             };
             setCurrentUser(userObj);
             setIsLoggedIn(true);
+            setShowSplashScreen(true);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("book_auth_logged_in", "true");
+              localStorage.setItem("book_auth_user", JSON.stringify(userObj));
+              localStorage.setItem("book_college_id", collegeId);
+            }
             return { success: true };
           }
           return { success: false, error: data?.error || "Registration failed" };
@@ -412,7 +545,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               name: studentData.name || studentData.fullName || "Student",
               fullName: studentData.fullName || studentData.name || "PES Student",
               department: studentData.department || "Computer Science & Engineering",
-              campus: (studentData.campus as Campus) || "RR Campus",
+              campus: studentData.campus || college.campuses[0] || "Main Campus",
               semester: "Semester 1",
               skill: "Intermediate",
               email: `${(studentData.name || "student").toLowerCase().replace(/\s+/g, "")}@pesu.pes.edu`,
@@ -424,6 +557,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             };
             setCurrentUser(fallbackUser);
             setIsLoggedIn(true);
+            setShowSplashScreen(true);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("book_auth_logged_in", "true");
+              localStorage.setItem("book_auth_user", JSON.stringify(fallbackUser));
+              localStorage.setItem("book_college_id", collegeId);
+            }
             return { success: true };
           }
           return { success: false, error: "Network error connecting to auth server" };
@@ -431,6 +570,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       logout: () => {
         setIsLoggedIn(false);
+        setShowSplashScreen(false);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("book_auth_logged_in");
+          localStorage.removeItem("book_auth_user");
+          localStorage.removeItem("book_college_id");
+        }
       },
       updateProfile: async (updates) => {
         try {
@@ -738,9 +883,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
     }),
     [
+      collegeId,
+      college,
+      showSplashScreen,
       currentUser,
       isLoggedIn,
-      adminEmailAgent,
       bookings,
       queueRequests,
       matches,

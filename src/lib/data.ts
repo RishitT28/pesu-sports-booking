@@ -65,7 +65,7 @@ export const SPORTS: Sport[] = [
 ];
 
 export const CAMPUSES = ["RR Campus", "EC Campus"] as const;
-export type Campus = (typeof CAMPUSES)[number];
+export type Campus = string;
 
 export type Court = {
   id: string;

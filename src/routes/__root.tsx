@@ -3,6 +3,7 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  useNavigate,
   useRouter,
   useRouterState,
   HeadContent,
@@ -15,6 +16,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppProvider, useApp } from "@/lib/store";
 import { BottomNav, TopNav, PESUSidebar } from "@/components/BottomNav";
+import { CollegeSplashScreen } from "@/components/CollegeSplashScreen";
 
 function NotFoundComponent() {
   return (
@@ -81,16 +83,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PES University — Sports Booking Portal" },
+      { title: "BookQuick — Multi-University Sports Facilities & Court Booking" },
       {
         name: "description",
-        content: "Official PES University Sports Facilities and Court Booking Portal.",
+        content: "BookQuick — Official Inter-Collegiate Athletic Facilities and Court Booking Platform across Karnataka Universities.",
       },
-      { name: "author", content: "PES University" },
-      { property: "og:title", content: "PES University — Sports Booking Portal" },
+      { name: "author", content: "BookQuick Multi-University Sports" },
+      { property: "og:title", content: "BookQuick — Multi-University Sports Facilities" },
       {
         property: "og:description",
-        content: "Official PES University Sports Facilities and Court Booking Portal.",
+        content: "BookQuick — Official Inter-Collegiate Athletic Facilities and Court Booking Platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -102,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap",
       },
     ],
   }),
@@ -118,7 +120,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="bg-[#f5f4ef] text-[#242831] antialiased selection:bg-[#c45524] selection:text-white font-serif">
+      <body className="antialiased selection:bg-amber-500 selection:text-white">
         {children}
         <Scripts />
       </body>
@@ -128,27 +130,43 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function MainLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const isLogin = pathname === "/login";
-  const { sidebarOpen } = useApp();
+  const { sidebarOpen, college, showSplashScreen, dismissSplashScreen, isLoggedIn } = useApp();
 
-  if (isLogin) {
-    return <Outlet />;
-  }
+  useEffect(() => {
+    if (!isLoggedIn && !isLogin) {
+      navigate({ to: "/login" });
+    }
+  }, [isLoggedIn, isLogin, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#f5f4ef] flex flex-col font-serif">
-      <TopNav />
-      <div className="flex flex-1 relative">
-        <PESUSidebar />
-        <div
-          className={`flex-1 min-w-0 transition-all duration-200 pb-20 md:pb-10 ${
-            sidebarOpen ? "md:ml-64" : "md:ml-16"
-          }`}
-        >
-          <Outlet />
-        </div>
-      </div>
-      <BottomNav />
+    <div
+      className={`min-h-screen flex flex-col transition-colors duration-200 ${college.fontClass}`}
+      style={{ backgroundColor: college.colors.pageBg }}
+    >
+      {isLoggedIn && showSplashScreen && (
+        <CollegeSplashScreen college={college} onDismiss={dismissSplashScreen} />
+      )}
+
+      {!isLoggedIn || isLogin ? (
+        <Outlet />
+      ) : (
+        <>
+          <TopNav />
+          <div className="flex flex-1 relative">
+            <PESUSidebar />
+            <div
+              className={`flex-1 min-w-0 transition-all duration-200 pb-20 md:pb-10 ${
+                sidebarOpen ? "md:ml-64" : "md:ml-16"
+              }`}
+            >
+              <Outlet />
+            </div>
+          </div>
+          <BottomNav />
+        </>
+      )}
     </div>
   );
 }

@@ -24,17 +24,17 @@ export const Route = createFileRoute("/matches")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "PESU Sports — Open Squads & Game Finder" },
+      { title: "BookQuick — Open Squads & Game Finder" },
       {
         name: "description",
         content:
-          "Connect with PES University athletes, join open community matches, and coordinate game rosters.",
+          "Connect with student athletes, join open community matches, and coordinate game rosters.",
       },
-      { property: "og:title", content: "PESU Sports — Open Squads & Game Finder" },
+      { property: "og:title", content: "BookQuick — Open Squads & Game Finder" },
       {
         property: "og:description",
         content:
-          "Connect with PES University athletes, join open community matches, and coordinate game rosters.",
+          "Connect with student athletes, join open community matches, and coordinate game rosters.",
       },
     ],
   }),
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/matches")({
 type ChatMsg = { from: string; text: string; mine: boolean; time: string };
 
 function MatchesPage() {
-  const { matches, joinMatch, createMatch } = useApp();
+  const { matches, joinMatch, createMatch, college } = useApp();
   const [selectedSport, setSelectedSport] = useState<string>("all");
   const [selectedCampus, setSelectedCampus] = useState<string>("all");
   const [selectedSkill, setSelectedSkill] = useState<string>("all");
@@ -60,13 +60,22 @@ function MatchesPage() {
   // Create match form state
   const [newTitle, setNewTitle] = useState("");
   const [newSport, setNewSport] = useState("badminton");
-  const [newCampus, setNewCampus] = useState<Campus>("RR Campus");
+  const [newCampus, setNewCampus] = useState<string>(college.campuses[0] || "Main Campus");
   const [newCourt, setNewCourt] = useState("Badminton Court 1");
   const [newTime, setNewTime] = useState("Today, 6:00 PM");
   const [newSkill, setNewSkill] = useState<"Beginner" | "Intermediate" | "Advanced">(
     "Intermediate",
   );
   const [newMaxPlayers, setNewMaxPlayers] = useState(4);
+
+  useEffect(() => {
+    if (!college.campuses.includes(newCampus as any)) {
+      setNewCampus(college.campuses[0] || "Main Campus");
+    }
+    if (selectedCampus !== "all" && !college.campuses.includes(selectedCampus as any)) {
+      setSelectedCampus("all");
+    }
+  }, [college]);
 
   // Filter matches
   const filteredMatches = useMemo(() => {
@@ -94,7 +103,7 @@ function MatchesPage() {
       },
       {
         from: m.host,
-        text: `We will assemble at ${m.court} (${m.campus}) by ${m.time}. Please carry non-marking shoes and your student RFID.`,
+        text: `We will assemble at ${m.court} (${m.campus}) by ${m.time}. Please carry non-marking shoes and your ${college.studentIdLabel}.`,
         mine: m.host === USER.name,
         time: "5m ago",
       },
@@ -156,26 +165,44 @@ function MatchesPage() {
   return (
     <main className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto font-serif">
       {/* 1. Header with generous padding & muted tones */}
-      <div className="bg-white border border-[#ded9cd] border-l-4 border-l-[#1a2639] p-6 sm:p-8 shadow-xs">
+      <div
+        className={`bg-white border p-6 sm:p-8 shadow-xs ${college.buttonStyle.radiusClass}`}
+        style={{
+          borderColor: college.colors.border,
+          borderLeftWidth: "4px",
+          borderLeftColor: college.colors.primary,
+        }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#eeeae1] pb-4">
           <div>
-            <span className="text-xs font-semibold text-[#c45524]">Student Matchmaking</span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#1a2639] mt-0.5">
+            <span
+              className="text-xs font-semibold"
+              style={{ color: college.colors.accent || college.colors.primary }}
+            >
+              {college.shortName} Student Matchmaking
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold mt-0.5" style={{ color: college.colors.primary }}>
               Open Squads & Game Finder
             </h1>
             <p className="text-xs text-[#636a77] mt-1.5 leading-relaxed">
-              Connect with fellow students, join open games, or publish your own game roster.
+              Connect with fellow {college.name} students, join open games, or publish your own game roster.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-[#f5f4ef] px-3.5 py-1.5 border border-[#ded9cd] text-xs font-medium text-[#1a2639]">
+            <div
+              className={`hidden sm:flex items-center gap-2 bg-[#f5f4ef] px-3.5 py-1.5 border border-[#ded9cd] text-xs font-medium ${college.buttonStyle.radiusClass}`}
+              style={{ color: college.colors.primary }}
+            >
               <span>Active Games:</span>
-              <span className="text-[#c45524] font-bold">{filteredMatches.length}</span>
+              <span className="font-bold" style={{ color: college.colors.accent || college.colors.primary }}>
+                {filteredMatches.length}
+              </span>
             </div>
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="bg-[#c45524] hover:bg-[#b04a1d] text-white text-xs font-semibold px-4 py-2 flex items-center gap-2"
+              className={`text-white text-xs font-semibold px-4 py-2 flex items-center gap-2 transition-all ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass} ${college.buttonStyle.extraClass}`}
+              style={{ backgroundColor: college.colors.primary }}
             >
               <Plus className="h-4 w-4" /> Create a Game
             </Button>
@@ -188,11 +215,19 @@ function MatchesPage() {
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <button
               onClick={() => setSelectedSport("all")}
-              className={`px-3 py-1.5 text-xs font-medium border transition-colors shrink-0 ${
+              className={`px-3 py-1.5 text-xs font-medium border transition-colors shrink-0 ${college.buttonStyle.radiusClass} ${
                 selectedSport === "all"
-                  ? "bg-[#1a2639] text-white border-[#1a2639] font-bold"
+                  ? "text-white font-bold"
                   : "bg-[#f5f4ef] text-[#4b5260] border-[#ded9cd] hover:bg-white"
               }`}
+              style={
+                selectedSport === "all"
+                  ? {
+                      backgroundColor: college.colors.primary,
+                      borderColor: college.colors.primary,
+                    }
+                  : undefined
+              }
             >
               All Disciplines
             </button>
@@ -202,11 +237,19 @@ function MatchesPage() {
                 <button
                   key={s.id}
                   onClick={() => setSelectedSport(s.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-colors shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-colors shrink-0 ${college.buttonStyle.radiusClass} ${
                     active
-                      ? "bg-[#1a2639] text-white border-[#1a2639] font-bold"
+                      ? "text-white font-bold"
                       : "bg-[#f5f4ef] text-[#4b5260] border-[#ded9cd] hover:bg-white"
                   }`}
+                  style={
+                    active
+                      ? {
+                          backgroundColor: college.colors.primary,
+                          borderColor: college.colors.primary,
+                        }
+                      : undefined
+                  }
                 >
                   <SportIcon sport={s.id} className="h-3.5 w-3.5" />
                   <span>{s.name}</span>
@@ -224,7 +267,7 @@ function MatchesPage() {
                 placeholder="Search games, hosts, or courts…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639] placeholder:text-[#8c94a0]"
+                className={`w-full pl-9 pr-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] placeholder:text-[#8c94a0] ${college.buttonStyle.radiusClass}`}
               />
             </div>
 
@@ -233,10 +276,10 @@ function MatchesPage() {
                 aria-label="Filter by campus"
                 value={selectedCampus}
                 onChange={(e) => setSelectedCampus(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
               >
                 <option value="all">All Campuses</option>
-                {CAMPUSES.map((c) => (
+                {college.campuses.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
@@ -289,19 +332,20 @@ function MatchesPage() {
               return (
                 <div
                   key={m.id}
-                  className="bg-white border border-[#ded9cd] flex flex-col justify-between transition-all hover:border-[#1a2639] hover:shadow-xs"
+                  className={`bg-white border flex flex-col justify-between transition-all hover:shadow-xs ${college.buttonStyle.radiusClass}`}
+                  style={{ borderColor: college.colors.border }}
                 >
                   <div className="p-6">
                     <div className="flex items-center justify-between gap-2 border-b border-[#eeeae1] pb-3 mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="p-1.5 bg-[#f5f4ef] border border-[#ded9cd] text-[#1a2639]">
+                        <span className={`p-1.5 bg-[#f5f4ef] border border-[#ded9cd] text-[#1a2639] ${college.buttonStyle.radiusClass}`}>
                           <SportIcon sport={m.sport} className="h-4 w-4" />
                         </span>
-                        <span className="text-xs font-bold text-[#1a2639]">
+                        <span className="text-xs font-bold" style={{ color: college.colors.primary }}>
                           {sportObj?.name ?? m.sport}
                         </span>
                       </div>
-                      <span className="text-xs font-medium px-2 py-0.5 border bg-[#f5f4ef] text-[#1a2639] border-[#ded9cd]">
+                      <span className={`text-xs font-medium px-2 py-0.5 border bg-[#f5f4ef] text-[#1a2639] border-[#ded9cd] ${college.buttonStyle.radiusClass}`}>
                         {m.skill}
                       </span>
                     </div>
@@ -310,9 +354,9 @@ function MatchesPage() {
 
                     <div className="mt-3 space-y-1.5 text-xs text-[#4b5260]">
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-3.5 w-3.5 text-[#c45524] shrink-0" />
+                        <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: college.colors.accent || college.colors.primary }} />
                         <span className="truncate">
-                          {m.court} · <span className="text-[#1a2639] font-medium">{m.campus}</span>
+                          {m.court} · <span className="font-medium" style={{ color: college.colors.primary }}>{m.campus}</span>
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -321,7 +365,7 @@ function MatchesPage() {
                       </div>
                       <div className="flex items-center gap-2 text-xs text-[#636a77]">
                         <span>Host:</span>
-                        <span className="font-semibold text-[#1a2639]">{m.host}</span>
+                        <span className="font-semibold" style={{ color: college.colors.primary }}>{m.host}</span>
                       </div>
                     </div>
 
@@ -332,7 +376,8 @@ function MatchesPage() {
                           Roster ({m.players.length}/{m.maxPlayers})
                         </span>
                         <span
-                          className={`font-semibold ${full ? "text-[#b94236]" : "text-[#c45524]"}`}
+                          className="font-semibold"
+                          style={{ color: full ? "#b94236" : college.colors.accent || college.colors.primary }}
                         >
                           {full ? "Full" : `${openSlots} Spot${openSlots > 1 ? "s" : ""} Left`}
                         </span>
@@ -340,10 +385,11 @@ function MatchesPage() {
 
                       <div className="h-1.5 w-full bg-[#f5f4ef] overflow-hidden border border-[#ded9cd]">
                         <div
-                          className={`h-full transition-all ${
-                            full ? "bg-[#1a2639]" : "bg-[#c45524]"
-                          }`}
-                          style={{ width: `${pct}%` }}
+                          className="h-full transition-all"
+                          style={{
+                            backgroundColor: full ? college.colors.primary : college.colors.accent || college.colors.primary,
+                            width: `${pct}%`,
+                          }}
                         />
                       </div>
 
@@ -352,7 +398,7 @@ function MatchesPage() {
                           <span
                             key={i}
                             title={p}
-                            className="h-6 px-2 bg-[#f5f4ef] border border-[#ded9cd] text-[11px] font-medium text-[#1a2639] flex items-center justify-center shrink-0"
+                            className={`h-6 px-2 bg-[#f5f4ef] border border-[#ded9cd] text-[11px] font-medium text-[#1a2639] flex items-center justify-center shrink-0 ${college.buttonStyle.radiusClass}`}
                           >
                             {p.split(" ")[0]}
                           </span>
@@ -365,24 +411,25 @@ function MatchesPage() {
                     {joined ? (
                       <button
                         onClick={() => openChat(m)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white border border-[#1a2639] text-[#1a2639] hover:bg-[#1a2639] hover:text-white transition-colors text-xs font-semibold"
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white border border-[#1a2639] text-[#1a2639] hover:bg-[#1a2639] hover:text-white transition-colors text-xs font-semibold ${college.buttonStyle.radiusClass}`}
                       >
                         <MessageCircle className="h-3.5 w-3.5" /> Team Chat
                       </button>
                     ) : (
-                      <span className="text-xs text-[#636a77]">Free entry · Carry student ID</span>
+                      <span className="text-xs text-[#636a77]">Free entry · Carry {college.studentIdLabel}</span>
                     )}
 
                     <Button
                       onClick={() => joinMatch(m.id)}
                       disabled={joined || full}
-                      className={`text-xs font-semibold px-4 py-1.5 ${
+                      className={`text-xs font-semibold px-4 py-1.5 transition-all ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass} ${college.buttonStyle.extraClass} ${
                         joined
                           ? "bg-[#ebe7df] text-[#636a77] cursor-default hover:bg-[#ebe7df]"
                           : full
                             ? "bg-[#ebe7df] text-[#8c94a0] cursor-not-allowed hover:bg-[#ebe7df]"
-                            : "bg-[#c45524] hover:bg-[#b04a1d] text-white"
+                            : "text-white"
                       }`}
+                      style={!joined && !full ? { backgroundColor: college.colors.primary } : undefined}
                     >
                       {joined ? "Joined" : full ? "Full" : "Join Game"}
                     </Button>
@@ -401,13 +448,20 @@ function MatchesPage() {
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="w-full max-w-lg bg-white border border-[#ded9cd] border-t-4 border-t-[#c45524] shadow-2xl p-6 sm:p-8 animate-in fade-in"
+            className={`w-full max-w-lg bg-white border shadow-2xl p-6 sm:p-8 animate-in fade-in ${college.buttonStyle.radiusClass}`}
+            style={{
+              borderColor: college.colors.border,
+              borderTopWidth: "4px",
+              borderTopColor: college.colors.primary,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#eeeae1] pb-3 mb-4">
               <div>
-                <span className="text-xs font-semibold text-[#c45524]">Assemble a Squad</span>
-                <h2 className="text-lg font-bold text-[#1a2639]">Create Open Game</h2>
+                <span className="text-xs font-semibold" style={{ color: college.colors.accent || college.colors.primary }}>
+                  Assemble a Squad at {college.shortName}
+                </span>
+                <h2 className="text-lg font-bold" style={{ color: college.colors.primary }}>Create Open Game</h2>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -428,7 +482,7 @@ function MatchesPage() {
                   placeholder="e.g. Doubles practice — looking for 2 players"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                  className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                 />
               </div>
 
@@ -442,7 +496,7 @@ function MatchesPage() {
                       const matchingCourt = COURTS.find((c) => c.sport === e.target.value);
                       if (matchingCourt) setNewCourt(matchingCourt.name);
                     }}
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   >
                     {SPORTS.map((s) => (
                       <option key={s.id} value={s.id}>
@@ -456,10 +510,10 @@ function MatchesPage() {
                   <label className="block text-xs font-bold text-[#4b5260] mb-1">Campus</label>
                   <select
                     value={newCampus}
-                    onChange={(e) => setNewCampus(e.target.value as Campus)}
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    onChange={(e) => setNewCampus(e.target.value)}
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   >
-                    {CAMPUSES.map((c) => (
+                    {college.campuses.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -478,7 +532,7 @@ function MatchesPage() {
                     value={newCourt}
                     onChange={(e) => setNewCourt(e.target.value)}
                     placeholder="e.g. Badminton Court 1"
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   />
                 </div>
 
@@ -489,7 +543,7 @@ function MatchesPage() {
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
                     placeholder="e.g. Today, 6:00 PM"
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   />
                 </div>
               </div>
@@ -502,7 +556,7 @@ function MatchesPage() {
                     onChange={(e) =>
                       setNewSkill(e.target.value as "Beginner" | "Intermediate" | "Advanced")
                     }
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -518,7 +572,7 @@ function MatchesPage() {
                     max={20}
                     value={newMaxPlayers}
                     onChange={(e) => setNewMaxPlayers(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none focus:border-[#1a2639] text-[#1a2639]"
+                    className={`w-full px-3 py-2 text-xs bg-[#f5f4ef] border border-[#ded9cd] outline-none text-[#1a2639] ${college.buttonStyle.radiusClass}`}
                   />
                 </div>
               </div>
@@ -533,7 +587,8 @@ function MatchesPage() {
                 </button>
                 <Button
                   type="submit"
-                  className="bg-[#c45524] hover:bg-[#b04a1d] text-white text-xs font-semibold px-5 py-2"
+                  className={`text-white text-xs font-semibold px-5 py-2 transition-all ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass} ${college.buttonStyle.extraClass}`}
+                  style={{ backgroundColor: college.colors.primary }}
                 >
                   Publish Game
                 </Button>
@@ -550,20 +605,30 @@ function MatchesPage() {
           onClick={() => setChatMatch(null)}
         >
           <div
-            className="flex h-[520px] w-full max-w-md flex-col bg-white border border-[#ded9cd] border-t-4 border-t-[#1a2639] shadow-2xl overflow-hidden"
+            className={`flex h-[520px] w-full max-w-md flex-col bg-white border shadow-2xl overflow-hidden ${college.buttonStyle.radiusClass}`}
+            style={{
+              borderColor: college.colors.border,
+              borderTopWidth: "4px",
+              borderTopColor: college.colors.primary,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#ded9cd] bg-[#1a2639] text-white p-4">
+            <div
+              className="flex items-center justify-between border-b text-white p-4"
+              style={{ backgroundColor: college.colors.ribbonBg || college.colors.primary }}
+            >
               <div className="min-w-0">
-                <span className="text-[10px] text-[#f0a27f] font-semibold">Squad Coordination</span>
+                <span className="text-[10px] font-semibold" style={{ color: college.colors.accent || "#f0a27f" }}>
+                  Squad Coordination
+                </span>
                 <p className="truncate text-sm font-bold text-white">{chatMatch.title}</p>
-                <p className="text-xs text-[#b4bdcb] mt-0.5">
+                <p className="text-xs text-white/80 mt-0.5">
                   {chatMatch.court} ({chatMatch.campus}) · {chatMatch.players.length} Athletes
                 </p>
               </div>
               <button
                 onClick={() => setChatMatch(null)}
-                className="p-1 text-[#b4bdcb] hover:text-white"
+                className="p-1 text-white/80 hover:text-white"
                 aria-label="Close coordination dialog"
               >
                 <X className="h-5 w-5" />
@@ -580,7 +645,7 @@ function MatchesPage() {
                 <button
                   key={chip}
                   onClick={() => sendMessage(chip)}
-                  className="shrink-0 text-xs px-2.5 py-1 bg-white border border-[#ded9cd] text-[#4b5260] hover:border-[#1a2639] hover:text-[#1a2639] transition-colors"
+                  className={`shrink-0 text-xs px-2.5 py-1 bg-white border border-[#ded9cd] text-[#4b5260] hover:text-[#1a2639] transition-colors ${college.buttonStyle.radiusClass}`}
                 >
                   {chip}
                 </button>
@@ -591,18 +656,28 @@ function MatchesPage() {
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.mine ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[85%] p-3 text-xs border ${
+                    className={`max-w-[85%] p-3 text-xs border ${college.buttonStyle.radiusClass} ${
                       msg.mine
-                        ? "bg-[#1a2639] text-white border-[#1a2639]"
+                        ? "text-white"
                         : "bg-white text-[#1a2639] border-[#ded9cd] shadow-2xs"
                     }`}
+                    style={
+                      msg.mine
+                        ? {
+                            backgroundColor: college.colors.primary,
+                            borderColor: college.colors.primary,
+                          }
+                        : undefined
+                    }
                   >
                     {!msg.mine && (
-                      <p className="mb-1 text-xs font-bold text-[#c45524]">{msg.from}</p>
+                      <p className="mb-1 text-xs font-bold" style={{ color: college.colors.accent || college.colors.primary }}>
+                        {msg.from}
+                      </p>
                     )}
                     <p className="leading-relaxed">{msg.text}</p>
                     <p
-                      className={`mt-1 text-[10px] text-right ${msg.mine ? "text-[#b4bdcb]" : "text-[#8c94a0]"}`}
+                      className={`mt-1 text-[10px] text-right ${msg.mine ? "text-white/70" : "text-[#8c94a0]"}`}
                     >
                       {msg.time}
                     </p>
@@ -618,11 +693,12 @@ function MatchesPage() {
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 placeholder="Message your game roster…"
-                className="flex-1 border border-[#ded9cd] bg-[#f5f4ef] px-3 py-2 text-xs text-[#1a2639] outline-none focus:border-[#1a2639]"
+                className={`flex-1 border border-[#ded9cd] bg-[#f5f4ef] px-3 py-2 text-xs text-[#1a2639] outline-none ${college.buttonStyle.radiusClass}`}
               />
               <Button
                 onClick={() => sendMessage()}
-                className="bg-[#c45524] hover:bg-[#b04a1d] text-white px-3 py-2 flex items-center justify-center"
+                className={`text-white px-3 py-2 flex items-center justify-center transition-all ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass} ${college.buttonStyle.extraClass}`}
+                style={{ backgroundColor: college.colors.primary }}
                 aria-label="Send message"
               >
                 <Send className="h-4 w-4" />

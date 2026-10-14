@@ -13,7 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   CAMPUSES,
   COURTS,
@@ -39,13 +39,13 @@ export const Route = createFileRoute("/courts")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "PESU Sports — Facilities Directory & Court Booking" },
+      { title: "BookQuick — Facilities Directory & Court Booking" },
       {
         name: "description",
         content:
-          "Browse live availability, reserve courts, or join waitlist queues with calendar scheduling at PES University.",
+          "Browse live availability, reserve courts, or join waitlist queues with calendar scheduling.",
       },
-      { property: "og:title", content: "PESU Sports — Facilities Directory & Court Booking" },
+      { property: "og:title", content: "BookQuick — Facilities Directory & Court Booking" },
       {
         property: "og:description",
         content:
@@ -88,9 +88,22 @@ function formatDayLabel(d: Date, today: Date): string {
 function CourtsPage() {
   const { sport } = Route.useSearch();
   const navigate = useNavigate({ from: "/courts" });
-  const { addBooking, bookings, addQueueRequest, getQueueForSlot, isSlotQueuedByUser } = useApp();
+  const {
+    addBooking,
+    bookings,
+    addQueueRequest,
+    getQueueForSlot,
+    isSlotQueuedByUser,
+    college,
+  } = useApp();
 
   const [campus, setCampus] = useState<string>("All");
+
+  useEffect(() => {
+    if (campus !== "All" && !college.campuses.includes(campus as any)) {
+      setCampus("All");
+    }
+  }, [college, campus]);
 
   // Calendar State
   const today = useMemo(() => {
@@ -123,12 +136,23 @@ function CourtsPage() {
 
   const dateLabel = useMemo(() => formatDayLabel(selectedDate, today), [selectedDate, today]);
 
+  const collegeCourts: Court[] = useMemo(() => {
+    return COURTS.map((court, idx) => ({
+      ...court,
+      campus: college.campuses[idx % college.campuses.length] || college.campuses[0] || "Main Campus",
+    }));
+  }, [college.campuses]);
+
   const filteredCourts = useMemo(
     () =>
-      COURTS.filter(
-        (c) => (!sport || c.sport === sport) && (campus === "All" || c.campus === campus),
+      collegeCourts.filter(
+        (c) =>
+          (!sport || c.sport === sport) &&
+          (campus === "All" ||
+            c.campus === campus ||
+            c.campus.toLowerCase().includes(campus.toLowerCase())),
       ),
-    [sport, campus],
+    [sport, campus, collegeCourts],
   );
 
   // Calendar month days calculation
@@ -205,21 +229,36 @@ function CourtsPage() {
       )}
 
       {/* 1. Header with generous spacing and soft colors */}
-      <div className="bg-white border border-[#ded9cd] border-l-4 border-l-[#1a2639] p-6 sm:p-8 shadow-xs">
+      <div
+        className={`bg-white border p-6 sm:p-8 shadow-xs ${college.buttonStyle.radiusClass}`}
+        style={{
+          borderColor: college.colors.border,
+          borderLeftWidth: "4px",
+          borderLeftColor: college.colors.primary,
+        }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#eeeae1] pb-5">
           <div>
-            <span className="text-xs font-semibold text-[#c45524]">Campus Sports Directory</span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#1a2639] mt-0.5">
+            <span
+              className="text-xs font-semibold"
+              style={{ color: college.colors.accent || college.colors.primary }}
+            >
+              {college.shortName} Sports Facilities Directory
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold mt-0.5" style={{ color: college.colors.primary }}>
               Reserve a Court or Facility
             </h1>
             <p className="text-xs text-[#636a77] mt-1.5 leading-relaxed max-w-2xl">
-              Select any date from the calendar to inspect real-time slot availability. If a slot is
-              booked, you can join the standby queue (maximum 2 queue spots per slot to prevent
+              Select any date from the calendar to inspect real-time slot availability at {college.name}.
+              If a slot is booked, you can join the standby queue (maximum 2 queue spots per slot to prevent
               starvation).
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#f5f4ef] px-3.5 py-2 border border-[#ded9cd] self-start sm:self-auto text-xs text-[#1a2639]">
+          <div
+            className={`flex items-center gap-2 bg-[#f5f4ef] px-3.5 py-2 border border-[#ded9cd] self-start sm:self-auto text-xs ${college.buttonStyle.radiusClass}`}
+            style={{ color: college.colors.primary }}
+          >
             <span className="h-2 w-2 rounded-full bg-[#10b981]" />
             <span className="font-semibold">Turnstiles open: 06:00 – 22:00</span>
           </div>
@@ -228,21 +267,27 @@ function CourtsPage() {
         {/* 2. Interactive Calendar & Filter Controls */}
         <div className="mt-6 space-y-5">
           {/* Calendar Date Bar */}
-          <div className="bg-[#f5f4ef] p-4 border border-[#ded9cd] space-y-3">
+          <div className={`bg-[#f5f4ef] p-4 border border-[#ded9cd] space-y-3 ${college.buttonStyle.radiusClass}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-[#c45524]" />
-                <span className="text-xs font-bold text-[#1a2639]">Booking Date:</span>
-                <span className="text-xs font-semibold text-[#c45524] bg-white px-2.5 py-1 border border-[#ded9cd]">
+                <CalendarIcon className="h-4 w-4" style={{ color: college.colors.accent || college.colors.primary }} />
+                <span className="text-xs font-bold" style={{ color: college.colors.primary }}>
+                  Booking Date:
+                </span>
+                <span
+                  className={`text-xs font-semibold bg-white px-2.5 py-1 border border-[#ded9cd] ${college.buttonStyle.radiusClass}`}
+                  style={{ color: college.colors.primary }}
+                >
                   {formatDateDisplay(selectedDate)} ({dateLabel})
                 </span>
               </div>
 
               <button
                 onClick={() => setShowCalendarDropdown((v) => !v)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-white border border-[#ded9cd] text-[#1a2639] hover:bg-[#ebe7df] transition-colors self-start sm:self-auto"
+                className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-white border border-[#ded9cd] hover:bg-[#ebe7df] transition-colors self-start sm:self-auto ${college.buttonStyle.radiusClass}`}
+                style={{ color: college.colors.primary }}
               >
-                <CalendarIcon className="h-3.5 w-3.5 text-[#1a2639]" />
+                <CalendarIcon className="h-3.5 w-3.5" />
                 <span>{showCalendarDropdown ? "Hide Calendar View" : "Open Calendar View"}</span>
               </button>
             </div>
@@ -264,11 +309,19 @@ function CourtsPage() {
                       setSelectedDate(d);
                       setShowCalendarDropdown(false);
                     }}
-                    className={`px-3 py-1.5 text-xs font-medium border transition-colors shrink-0 ${
+                    className={`px-3 py-1.5 text-xs font-medium border transition-colors shrink-0 ${college.buttonStyle.radiusClass} ${
                       isSelected
-                        ? "bg-[#1a2639] text-white border-[#1a2639] font-bold"
+                        ? "text-white font-bold"
                         : "bg-white text-[#4b5260] border-[#ded9cd] hover:bg-[#ebe7df]"
                     }`}
+                    style={
+                      isSelected
+                        ? {
+                            backgroundColor: college.colors.primary,
+                            borderColor: college.colors.primary,
+                          }
+                        : undefined
+                    }
                   >
                     {label}
                   </button>
@@ -278,9 +331,9 @@ function CourtsPage() {
 
             {/* Interactive Full Calendar Modal / Drawer Dropdown */}
             {showCalendarDropdown && (
-              <div className="mt-3 p-4 bg-white border border-[#ded9cd] shadow-md animate-in fade-in-50">
+              <div className={`mt-3 p-4 bg-white border border-[#ded9cd] shadow-md animate-in fade-in-50 ${college.buttonStyle.radiusClass}`}>
                 <div className="flex items-center justify-between border-b border-[#eeeae1] pb-2 mb-3">
-                  <div className="text-xs font-bold text-[#1a2639]">
+                  <div className="text-xs font-bold" style={{ color: college.colors.primary }}>
                     {calendarMonth.toLocaleDateString("en-US", {
                       month: "long",
                       year: "numeric",
@@ -343,13 +396,21 @@ function CourtsPage() {
                           setSelectedDate(d);
                           setShowCalendarDropdown(false);
                         }}
-                        className={`h-8 text-xs transition-colors flex items-center justify-center border ${
+                        className={`h-8 text-xs transition-colors flex items-center justify-center border ${college.buttonStyle.radiusClass} ${
                           isSelected
-                            ? "bg-[#c45524] text-white border-[#c45524] font-bold"
+                            ? "text-white font-bold"
                             : isPast
                               ? "bg-[#f5f4ef] text-[#a3afc2] border-transparent cursor-not-allowed opacity-50"
                               : "bg-white text-[#1a2639] border-[#eeeae1] hover:bg-[#ebe7df]"
                         }`}
+                        style={
+                          isSelected
+                            ? {
+                                backgroundColor: college.colors.accent || college.colors.primary,
+                                borderColor: college.colors.accent || college.colors.primary,
+                              }
+                            : undefined
+                        }
                       >
                         {d.getDate()}
                       </button>
@@ -365,11 +426,19 @@ function CourtsPage() {
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
               <button
                 onClick={() => navigate({ search: {} })}
-                className={`px-3 py-1.5 text-xs transition-colors border shrink-0 ${
+                className={`px-3 py-1.5 text-xs transition-colors border shrink-0 ${college.buttonStyle.radiusClass} ${
                   !sport
-                    ? "bg-[#1a2639] text-white border-[#1a2639] font-bold"
+                    ? "text-white font-bold"
                     : "bg-[#f5f4ef] text-[#4b5260] border-[#ded9cd] hover:bg-white"
                 }`}
+                style={
+                  !sport
+                    ? {
+                        backgroundColor: college.colors.primary,
+                        borderColor: college.colors.primary,
+                      }
+                    : undefined
+                }
               >
                 All Disciplines
               </button>
@@ -379,11 +448,19 @@ function CourtsPage() {
                   <button
                     key={s.id}
                     onClick={() => navigate({ search: { sport: s.id } })}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors border shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors border shrink-0 ${college.buttonStyle.radiusClass} ${
                       active
-                        ? "bg-[#1a2639] text-white border-[#1a2639] font-bold"
+                        ? "text-white font-bold"
                         : "bg-[#f5f4ef] text-[#4b5260] border-[#ded9cd] hover:bg-white"
                     }`}
+                    style={
+                      active
+                        ? {
+                            backgroundColor: college.colors.primary,
+                            borderColor: college.colors.primary,
+                          }
+                        : undefined
+                    }
                   >
                     <SportIcon sport={s.id} className="h-3.5 w-3.5" />
                     <span>{s.name}</span>
@@ -394,19 +471,27 @@ function CourtsPage() {
           </div>
 
           {/* Campus Toggle */}
-          <div className="flex items-center gap-2 pt-1 border-t border-[#eeeae1]">
+          <div className="flex items-center gap-2 pt-1 border-t border-[#eeeae1] flex-wrap">
             <span className="text-xs text-[#636a77] font-medium mr-1">Campus:</span>
-            {["All", ...CAMPUSES].map((c) => (
+            {["All", ...college.campuses].map((c) => (
               <button
                 key={c}
                 onClick={() => setCampus(c)}
-                className={`px-3 py-1 text-xs border transition-colors ${
+                className={`px-3 py-1 text-xs border transition-colors ${college.buttonStyle.radiusClass} ${
                   campus === c
-                    ? "bg-[#1a2639] text-white border-[#1a2639] font-semibold"
+                    ? "font-semibold text-white shadow-xs"
                     : "bg-white text-[#4b5260] border-[#ded9cd] hover:bg-[#f5f4ef]"
                 }`}
+                style={
+                  campus === c
+                    ? {
+                        backgroundColor: college.colors.primary,
+                        borderColor: college.colors.primary,
+                      }
+                    : undefined
+                }
               >
-                {c === "All" ? "All Campuses" : c}
+                {c === "All" ? `All ${college.shortName} Campuses` : c}
               </button>
             ))}
           </div>
@@ -415,33 +500,56 @@ function CourtsPage() {
 
       {/* 3. Facility Cards & Time Slots Availability Matrix */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between border-b-2 border-[#1a2639] pb-3">
+        <div
+          className="flex items-center justify-between pb-3 border-b-2"
+          style={{ borderBottomColor: college.colors.primary }}
+        >
           <div>
-            <h2 className="text-xl font-bold text-[#1a2639]">Available Courts & Time Slots</h2>
+            <h2 className="text-xl font-bold" style={{ color: college.colors.primary }}>
+              Available Courts & Time Slots
+            </h2>
             <p className="text-xs text-[#636a77]">
-              Showing slots for <span className="font-semibold text-[#c45524]">{dateLabel}</span>.
-              Click an available slot to reserve, or join the queue for booked slots.
+              Showing slots for{" "}
+              <span
+                className="font-semibold"
+                style={{ color: college.colors.accent || college.colors.primary }}
+              >
+                {dateLabel}
+              </span>
+              . Click an available slot to reserve, or join the queue for booked slots.
             </p>
           </div>
           <div className="text-xs text-[#636a77]">{filteredCourts.length} Courts Listed</div>
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-4 text-xs text-[#4b5260] bg-white p-3 border border-[#ded9cd]">
+        <div
+          className={`flex flex-wrap items-center gap-4 text-xs text-[#4b5260] bg-white p-3 border ${college.buttonStyle.radiusClass}`}
+          style={{ borderColor: college.colors.border }}
+        >
           <div className="flex items-center gap-1.5">
-            <span className="h-3.5 w-3.5 bg-white border-2 border-[#c45524]" />
+            <span
+              className="h-3.5 w-3.5 bg-white border-2"
+              style={{ borderColor: college.colors.primary }}
+            />
             <span>Available Slot</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-3.5 w-3.5 bg-[#c45524] text-white" />
+            <span
+              className="h-3.5 w-3.5 text-white"
+              style={{ backgroundColor: college.colors.primary }}
+            />
             <span>Selected for Booking</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-3.5 w-3.5 bg-[#ebe7df] border border-[#ded9cd]" />
-            <span>Booked (Queue Request Open, max 2)</span>
+            <span>Booked (Queue Open, max 2)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-3.5 w-3.5 bg-[#1a2639] text-white" />
+            <span
+              className="h-3.5 w-3.5 text-white"
+              style={{ backgroundColor: college.colors.ribbonBg }}
+            />
             <span>In Standby Queue</span>
           </div>
         </div>
@@ -454,18 +562,22 @@ function CourtsPage() {
             return (
               <div
                 key={court.id}
-                className="bg-white border border-[#ded9cd] p-6 shadow-xs transition-colors hover:border-[#1a2639]"
+                className={`bg-white border p-6 shadow-xs transition-colors ${college.buttonStyle.radiusClass}`}
+                style={{ borderColor: college.colors.border }}
               >
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
                   {/* Left: Court info & photography */}
                   <div className="lg:col-span-1 space-y-3">
-                    <div className="relative h-44 w-full overflow-hidden bg-[#f5f4ef] border border-[#ded9cd]">
+                    <div className={`relative h-44 w-full overflow-hidden bg-[#f5f4ef] border border-[#ded9cd] ${college.buttonStyle.radiusClass}`}>
                       <img
                         src={court.image}
                         alt={court.name}
                         className="h-full w-full object-cover"
                       />
-                      <div className="absolute top-2 left-2 bg-[#1a2639] text-white px-2 py-0.5 text-[10px] font-semibold">
+                      <div
+                        className="absolute top-2 left-2 text-white px-2 py-0.5 text-[10px] font-semibold"
+                        style={{ backgroundColor: college.colors.primary }}
+                      >
                         {court.indoor ? "Indoor Hall" : "Outdoor Arena"}
                       </div>
                       <div className="absolute bottom-2 right-2 bg-white/95 text-[#1a2639] px-2 py-0.5 text-xs font-semibold">
@@ -474,12 +586,19 @@ function CourtsPage() {
                     </div>
 
                     <div>
-                      <h3 className="text-base font-bold text-[#1a2639]">{court.name}</h3>
+                      <h3 className="text-base font-bold" style={{ color: college.colors.primary }}>
+                        {court.name}
+                      </h3>
                       <div className="mt-1 flex items-center gap-1.5 text-xs text-[#636a77]">
-                        <MapPin className="h-3.5 w-3.5 text-[#1a2639] shrink-0" />
+                        <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: college.colors.primary }} />
                         <span>{court.campus}</span>
                         <span>·</span>
-                        <span className="text-[#c45524] font-medium">{sportObj?.name}</span>
+                        <span
+                          className="font-medium"
+                          style={{ color: college.colors.accent || college.colors.primary }}
+                        >
+                          {sportObj?.name}
+                        </span>
                       </div>
                       <p className="mt-2 text-xs text-[#4b5260] leading-relaxed">
                         {court.equipment}
@@ -494,7 +613,7 @@ function CourtsPage() {
                   {/* Right: Slot Matrix (6 AM - 10 PM) */}
                   <div className="lg:col-span-3 space-y-3">
                     <div className="flex items-center justify-between border-b border-[#eeeae1] pb-2">
-                      <span className="text-xs font-bold text-[#1a2639]">
+                      <span className="text-xs font-bold" style={{ color: college.colors.primary }}>
                         Hourly Slots for {dateLabel}
                       </span>
                       <span className="text-xs text-[#636a77]">6:00 AM to 10:00 PM</span>
@@ -525,11 +644,19 @@ function CourtsPage() {
                           return (
                             <div
                               key={hour}
-                              className={`p-2.5 border text-left flex flex-col justify-between rounded-none transition-colors ${
+                              className={`p-2.5 border text-left flex flex-col justify-between transition-colors ${college.buttonStyle.radiusClass} ${
                                 userQueued
-                                  ? "bg-[#1a2639] text-white border-[#1a2639]"
+                                  ? "text-white"
                                   : "bg-[#ebe7df] text-[#636a77] border-[#ded9cd]"
                               }`}
+                              style={
+                                userQueued
+                                  ? {
+                                      backgroundColor: college.colors.ribbonBg,
+                                      borderColor: college.colors.ribbonBg,
+                                    }
+                                  : undefined
+                              }
                             >
                               <div>
                                 <div className="flex items-center justify-between">
@@ -537,9 +664,16 @@ function CourtsPage() {
                                   <span
                                     className={`text-[10px] px-1 py-0.2 ${
                                       userQueued
-                                        ? "bg-[#c45524] text-white"
+                                        ? "text-white"
                                         : "bg-[#ded9cd] text-[#4b5260]"
                                     }`}
+                                    style={
+                                      userQueued
+                                        ? {
+                                            backgroundColor: college.colors.primary,
+                                          }
+                                        : undefined
+                                    }
                                   >
                                     {userQueued ? "Queued" : "Booked"}
                                   </span>
@@ -561,7 +695,8 @@ function CourtsPage() {
                                 ) : (
                                   <button
                                     onClick={() => handleQueueRequest(court, hour)}
-                                    className="w-full text-center text-[10px] font-bold text-[#c45524] hover:underline"
+                                    className="w-full text-center text-[10px] font-bold hover:underline"
+                                    style={{ color: college.colors.accent || college.colors.primary }}
                                   >
                                     Join Queue ({2 - queue.length} left)
                                   </button>
@@ -576,11 +711,19 @@ function CourtsPage() {
                           <button
                             key={hour}
                             onClick={() => setSelected({ court, hour })}
-                            className={`p-2.5 border text-left flex flex-col justify-between rounded-none transition-all cursor-pointer ${
+                            className={`p-2.5 border text-left flex flex-col justify-between transition-all cursor-pointer ${college.buttonStyle.radiusClass} ${
                               isSelected
-                                ? "bg-[#c45524] text-white border-[#c45524] shadow-sm"
-                                : "bg-white text-[#1a2639] border-[#ded9cd] hover:border-[#c45524] hover:bg-[#faf9f5]"
+                                ? "text-white shadow-sm"
+                                : "bg-white text-[#1a2639] border-[#ded9cd] hover:bg-[#faf9f5]"
                             }`}
+                            style={
+                              isSelected
+                                ? {
+                                    backgroundColor: college.colors.primary,
+                                    borderColor: college.colors.primary,
+                                  }
+                                : undefined
+                            }
                           >
                             <div>
                               <div className="flex items-center justify-between">
@@ -588,9 +731,14 @@ function CourtsPage() {
                                 <span
                                   className={`text-[10px] px-1 py-0.2 ${
                                     isSelected
-                                      ? "bg-white text-[#c45524] font-bold"
+                                      ? "bg-white font-bold"
                                       : "bg-[#f5f4ef] text-[#1a2639]"
                                   }`}
+                                  style={
+                                    isSelected
+                                      ? { color: college.colors.primary }
+                                      : undefined
+                                  }
                                 >
                                   {isSelected ? "Selected" : "Open"}
                                 </span>
@@ -600,7 +748,7 @@ function CourtsPage() {
                                   isSelected ? "text-white/90" : "text-[#636a77]"
                                 }`}
                               >
-                                Access: Free with Student ID
+                                Access: Free with {college.studentIdLabel}
                               </p>
                             </div>
 
@@ -621,11 +769,23 @@ function CourtsPage() {
 
       {/* 4. Booking Summary Drawer / Panel when slot is selected */}
       {selected && (
-        <div className="bg-white border border-[#ded9cd] border-l-4 border-l-[#c45524] p-6 shadow-lg animate-in slide-in-from-bottom-3">
+        <div
+          className={`bg-white border p-6 shadow-lg animate-in slide-in-from-bottom-3 ${college.buttonStyle.radiusClass}`}
+          style={{
+            borderColor: college.colors.border,
+            borderLeftWidth: "4px",
+            borderLeftColor: college.colors.primary,
+          }}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-semibold text-[#c45524]">Reservation Summary</span>
-              <h3 className="text-lg font-bold text-[#1a2639]">
+              <span
+                className="text-xs font-semibold"
+                style={{ color: college.colors.accent || college.colors.primary }}
+              >
+                Reservation Summary
+              </span>
+              <h3 className="text-lg font-bold" style={{ color: college.colors.primary }}>
                 {selected.court.name} ({selected.court.campus})
               </h3>
               <p className="text-xs text-[#636a77] mt-1">
@@ -634,17 +794,22 @@ function CourtsPage() {
                   {formatHour(selected.hour)} – {formatHour(selected.hour + 1)}
                 </strong>{" "}
                 · Facility Access:{" "}
-                <strong className="text-[#1a2639]">Free (PESU Student Clearance)</strong>
+                <strong className="text-[#1a2639]">Free ({college.shortName} Student Clearance)</strong>
               </p>
             </div>
 
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="text-xs" onClick={() => setSelected(null)}>
+              <Button
+                variant="outline"
+                className={`text-xs ${college.buttonStyle.radiusClass}`}
+                onClick={() => setSelected(null)}
+              >
                 Clear Selection
               </Button>
               <Button
                 onClick={confirmBooking}
-                className="bg-[#c45524] hover:bg-[#b04a1d] text-white text-xs font-bold px-6 py-2"
+                className={`text-white text-xs font-bold px-6 py-2 transition-all ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass} ${college.buttonStyle.extraClass}`}
+                style={{ backgroundColor: college.colors.primary }}
               >
                 Confirm Pass
               </Button>
@@ -660,13 +825,15 @@ function CourtsPage() {
           onClick={() => setConfirmedBookingId(null)}
         >
           <div
-            className="w-full max-w-lg bg-white border border-[#ded9cd] p-6 sm:p-8 shadow-2xl space-y-5"
+            className={`w-full max-w-lg bg-white border border-[#ded9cd] p-6 sm:p-8 shadow-2xl space-y-5 ${college.buttonStyle.radiusClass}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#eeeae1] pb-3">
               <div className="flex items-center gap-2">
                 <Check className="h-5 w-5 text-[#10b981]" />
-                <h3 className="text-lg font-bold text-[#1a2639]">Reservation Confirmed!</h3>
+                <h3 className="text-lg font-bold" style={{ color: college.colors.primary }}>
+                  Reservation Confirmed!
+                </h3>
               </div>
               <button
                 onClick={() => setConfirmedBookingId(null)}
@@ -679,9 +846,9 @@ function CourtsPage() {
             <BookingDetails booking={confirmedBooking} />
 
             <div className="p-3 bg-[#f5f4ef] border border-[#ded9cd] text-xs text-[#4b5260] space-y-1">
-              <p className="font-semibold text-[#1a2639]">Turnstile Gate Entry Notice:</p>
+              <p className="font-semibold" style={{ color: college.colors.primary }}>Turnstile Gate Entry Notice:</p>
               <p>
-                Please arrive 5 minutes before your slot with your PESU Student RFID card or the
+                Please arrive 5 minutes before your slot with your {college.shortName} {college.studentIdLabel} card or the
                 digital pass in your profile. Non-marking shoes are mandatory for indoor wooden
                 courts.
               </p>
@@ -689,7 +856,8 @@ function CourtsPage() {
 
             <div className="flex justify-end gap-3 pt-2">
               <Button
-                className="bg-[#1a2639] hover:bg-[#25364e] text-white text-xs font-bold"
+                className={`text-white text-xs font-bold ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass}`}
+                style={{ backgroundColor: college.colors.primary }}
                 onClick={() => setConfirmedBookingId(null)}
               >
                 Done
@@ -706,13 +874,20 @@ function CourtsPage() {
           onClick={() => setQueueModalInfo(null)}
         >
           <div
-            className="w-full max-w-md bg-white border border-[#ded9cd] border-t-4 border-t-[#c45524] p-6 shadow-2xl space-y-4"
+            className={`w-full max-w-md bg-white border p-6 shadow-2xl space-y-4 ${college.buttonStyle.radiusClass}`}
+            style={{
+              borderColor: college.colors.border,
+              borderTopWidth: "4px",
+              borderTopColor: college.colors.primary,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#eeeae1] pb-3">
               <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-[#c45524]" />
-                <h3 className="text-base font-bold text-[#1a2639]">Standby Queue Confirmed</h3>
+                <Users className="h-5 w-5" style={{ color: college.colors.primary }} />
+                <h3 className="text-base font-bold" style={{ color: college.colors.primary }}>
+                  Standby Queue Confirmed
+                </h3>
               </div>
               <button
                 onClick={() => setQueueModalInfo(null)}
@@ -726,7 +901,7 @@ function CourtsPage() {
               <p>
                 You are registered in <strong>Position #{queueModalInfo.position}</strong> of 2 for:
               </p>
-              <div className="p-3 bg-[#f5f4ef] border border-[#ded9cd] space-y-1 font-semibold text-[#1a2639]">
+              <div className="p-3 bg-[#f5f4ef] border border-[#ded9cd] space-y-1 font-semibold" style={{ color: college.colors.primary }}>
                 <p>
                   {queueModalInfo.court.name} ({queueModalInfo.court.campus})
                 </p>
@@ -737,14 +912,15 @@ function CourtsPage() {
               </div>
               <p className="text-[#636a77] text-[11px] leading-relaxed pt-1">
                 <strong>Starvation Protection Policy:</strong> To keep access fair and prevent
-                infinite waitlists, queues are capped at 2 standby students per slot. If the current
+                infinite waitlists, queues are capped at 2 standby students per slot at {college.shortName}. If the current
                 slot holder cancels, your reservation will be automatically upgraded to confirmed.
               </p>
             </div>
 
             <div className="flex justify-end pt-2">
               <Button
-                className="bg-[#c45524] hover:bg-[#b04a1d] text-white text-xs font-bold"
+                className={`text-white text-xs font-bold ${college.buttonStyle.radiusClass} ${college.buttonStyle.primaryClass}`}
+                style={{ backgroundColor: college.colors.primary }}
                 onClick={() => setQueueModalInfo(null)}
               >
                 Got It
